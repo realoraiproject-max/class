@@ -851,8 +851,8 @@ body {
       <button class="btn-nav" onclick="calNav(1)">▶</button>
       <button class="btn btn-primary btn-sm" onclick="goToday()">TODAY</button>
       <div style="flex:1"></div>
-      <button class="btn btn-outline btn-sm active" id="btn-week" onclick="setCalView('week')">Week</button>
-      <button class="btn btn-outline btn-sm" id="btn-month" onclick="setCalView('month')">Month</button>
+     <button class="btn btn-outline btn-sm" id="btn-week" onclick="setCalView('week')">Week</button>
+<button class="btn btn-outline btn-sm active" id="btn-month" onclick="setCalView('month')">Month</button>
       <button class="btn btn-outline btn-sm" title="Google Sheets 동기화" onclick="syncLoadAll()" style="margin-left:8px;">☁ 동기화</button>
     </div>
     <div class="cal-legend" id="cal-legend"></div>
@@ -993,7 +993,7 @@ function save(){ localStorage.setItem('classroomApp', JSON.stringify(appData)); 
 /* ════════════════════════════════
    CALENDAR STATE
 ════════════════════════════════ */
-let calView = 'week';
+let calView = 'month';
 let calDate = new Date();
 
 const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
