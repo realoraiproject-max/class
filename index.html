@@ -1916,7 +1916,7 @@ function parseDateStr(str){
    GOOGLE SHEETS 연동
    배포 후 아래 URL을 실제 Apps Script 웹앱 URL로 교체하세요.
 ════════════════════════════════ */
-const APPS_SCRIPT_URL = ''; // ← 여기에 Apps Script 웹앱 URL 입력
+const APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || ''; // ← 여기에 Apps Script 웹앱 URL 입력
 
 async function syncCall(action, payload={}) {
   if(!APPS_SCRIPT_URL) return null; // URL 미설정 시 로컬 모드
@@ -1934,7 +1934,14 @@ async function syncCall(action, payload={}) {
 }
 
 async function syncLoadAll() {
-  if(!APPS_SCRIPT_URL) return;
+  if(!APPS_SCRIPT_URL) {
+    const url = prompt('Apps Script 웹앱 URL을 입력하세요.\n(배포 → 웹앱 URL)');
+    if(!url || !url.trim()) return;
+    // 전역 변수 대신 localStorage에 저장해서 새로고침 후에도 유지
+    localStorage.setItem('appsScriptUrl', url.trim());
+    location.reload(); // 저장 후 재로드하면 아래 코드로 자동 연결
+    return;
+  }
   showToast('Google Sheets에서 데이터 로드 중...','info');
   const res = await syncCall('loadAll');
   if(res && res.success && res.data) {
@@ -1943,6 +1950,8 @@ async function syncLoadAll() {
     renderSidebar();
     renderCalendar();
     showToast('데이터 로드 완료','success');
+  } else {
+    showToast('데이터 로드 실패. URL을 확인하세요.','error');
   }
 }
 
