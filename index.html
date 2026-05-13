@@ -1079,7 +1079,7 @@ function renderTeamDetail(tk) {
   // Classrooms
   const classrooms = team.classrooms.length ? team.classrooms : ['','',''];
   let crHtml = classrooms.map((c,i) => `
-    <input class="classroom-input" value="${c}" placeholder="(예: Room ${101+i})"
+    <input class="classroom-input" value="${c}" placeholder="(예: ${101+i})"
       oninput="updateClassroom('${tk}',${i},this.value)" data-cr-idx="${i}">
   `).join('');
 
