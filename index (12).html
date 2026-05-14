@@ -1,0 +1,2555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교실 예약 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-bg: #1a1f2e;
+  --sidebar-text: #e8eaf0;
+  --sidebar-accent: #4fc3f7;
+  --sidebar-hover: #263147;
+  --sidebar-active: #2d4a6e;
+
+  --main-bg: #f4f6fb;
+  --card-bg: #ffffff;
+  --border: #dde3f0;
+  --text-primary: #1a1f2e;
+  --text-secondary: #5a6480;
+  --text-light: #9aa0b8;
+
+  --cal-bg: #ffffff;
+  --cal-header: #1a1f2e;
+  --cal-weekend: #f8f9fd;
+  --cal-today: #e3f2fd;
+
+  /* Section pastel colors */
+  --cal-section: #e8f4fd;
+  --dept-section: #f0faf0;
+  --search-section: #fff8e8;
+  --admin-section: #fdf0f8;
+
+  /* Event colors */
+  --evt-academic-break: #e74c3c;
+  --evt-immersion2: #8e44ad;
+  --evt-immersion3: #2980b9;
+  --evt-cookery: #e67e22;
+  --evt-ooca1: #27ae60;
+  --evt-ooca2: #16a085;
+  --evt-ooca3: #1abc9c;
+  --evt-dlpt: #d35400;
+  --evt-custom: #7f8c8d;
+  --evt-holiday: #c0392b;
+
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue: #3498db;
+  --yellow: #f39c12;
+
+  --font-main: 'Noto Sans KR', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  --fs-base: 15px;
+  --fs-sm: 13px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-xxl: 28px;
+
+  --sidebar-w: 200px;
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-main);
+  font-size: var(--fs-base);
+  background: var(--main-bg);
+  color: var(--text-primary);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+#sidebar .logo {
+  padding: 22px 18px 16px;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--sidebar-accent);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  line-height: 1.3;
+}
+#sidebar .logo span { display: block; font-size: 11px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 3px; }
+
+.nav-section { padding: 10px 0; }
+.nav-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 18px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s;
+  user-select: none;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active { background: var(--sidebar-active); border-left-color: var(--sidebar-accent); color: #fff; }
+.nav-item .icon { font-size: 17px; width: 22px; text-align: center; }
+
+.dept-sub { padding-left: 36px; }
+.dept-toggle { font-size: 13px; padding: 8px 18px 8px 18px; }
+.dept-sub .nav-item { font-size: 12.5px; padding: 7px 18px 7px 18px; }
+
+.sidebar-spacer { flex: 1; }
+
+#sidebar .admin-btn {
+  margin: 12px 14px;
+  padding: 9px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+#sidebar .admin-btn:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+
+/* ── MAIN ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-panel {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+.section-panel.active { display: flex; }
+
+/* ── CALENDAR ── */
+#panel-calendar {
+  background: var(--cal-section);
+  padding: 0;
+}
+
+.cal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px 7px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.cal-toolbar h2 {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  min-width: 180px;
+}
+
+.btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 7px;
+  font-family: var(--font-main);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary { background: #1a1f2e; color: #fff; }
+.btn-primary:hover { background: #2d4a6e; }
+.btn-outline { background: #fff; color: var(--text-primary); border: 1.5px solid var(--border); }
+.btn-outline:hover { background: var(--main-bg); }
+.btn-outline.active { background: var(--sidebar-bg); color: #fff; border-color: var(--sidebar-bg); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-nav { background: none; border: 1.5px solid var(--border); border-radius: 7px; padding: 6px 12px; cursor: pointer; font-size: 16px; color: var(--text-secondary); transition: all 0.15s; }
+.btn-nav:hover { background: var(--main-bg); }
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 5px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+#cal-container {
+  flex: 1;
+  overflow: hidden;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Month view */
+.cal-month {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.cal-month-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--sidebar-bg);
+  flex-shrink: 0;
+}
+.cal-month-header .day-head {
+  text-align: center;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+.cal-month-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  flex: 1;
+  /* 행 수는 JS가 결정하므로 auto-rows로 균등 분할 */
+  grid-auto-rows: 1fr;
+}
+.cal-day {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 5px 5px 4px;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+  overflow: hidden;
+}
+.cal-day:nth-child(5n) { border-right: none; }
+.cal-day:hover { background: #f0f6ff; }
+.cal-day.other-month { background: #fafbff; }
+.cal-day.other-month .day-num { color: var(--text-light); }
+.cal-day.today { background: var(--cal-today); }
+.cal-day.today .day-num {
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.day-num {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  color: var(--text-primary);
+}
+.cal-event {
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+/* Week view */
+.cal-week {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.cal-week-header {
+  display: grid;
+  grid-template-columns: 50px repeat(5, 1fr);
+  background: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.cal-week-header .day-head {
+  text-align: center;
+  padding: 7px 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+.cal-week-header .day-head small { display: block; font-size: 17px; font-weight: 700; margin-top: 1px; }
+.cal-week-header .day-head.today-head small { color: var(--sidebar-accent); }
+.week-time-col { font-size: 11px; color: var(--text-light); text-align: right; padding-right: 8px; padding-top: 4px; }
+.cal-week-body {
+  display: grid;
+  grid-template-columns: 50px repeat(5, 1fr);
+  grid-auto-rows: 1fr;
+  flex: 1;
+}
+.week-hour {
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.1s;
+  overflow: hidden;
+}
+.week-hour:hover { background: #f0f6ff; }
+.week-hour.today-col { background: #f5fbff; }
+.week-hour-label {
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 4px 6px 0 0;
+  font-size: 10px;
+  color: var(--text-light);
+}
+.week-event {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin: 2px;
+  cursor: pointer;
+}
+
+/* ── DEPT PANEL ── */
+#panel-dept {
+  background: var(--dept-section);
+}
+
+.panel-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.panel-header h2 { font-size: var(--fs-lg); font-weight: 800; }
+.panel-body { flex: 1; overflow-y: auto; padding: 12px 18px; }
+
+@media (max-width: 720px) {
+  .panel-header { padding-left: 52px; }
+}
+
+.team-detail-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+.team-detail-card h3 {
+  font-size: var(--fs-base);
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--sidebar-bg);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 7px;
+}
+
+.classroom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.classroom-input {
+  padding: 5px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-family: var(--font-main);
+  font-size: 13px;
+  width: 130px;
+  transition: border-color 0.15s;
+}
+.classroom-input:focus { outline: none; border-color: var(--sidebar-accent); }
+
+/* ── 학사일정: 한 줄 테이블 형식 ── */
+.schedule-grid {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+}
+.schedule-item {
+  display: table-row;
+}
+.schedule-item > label,
+.schedule-item > .schedule-item-row {
+  display: table-cell;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  padding: 4px 8px 4px 0;
+}
+.schedule-item:last-child > label,
+.schedule-item:last-child > .schedule-item-row {
+  border-bottom: none;
+}
+.schedule-item label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  width: 130px;
+  min-width: 130px;
+}
+.schedule-item-row {
+  display: table-cell !important;
+  vertical-align: middle;
+}
+.schedule-item-row-inner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.date-input {
+  padding: 4px 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: 96px;
+  transition: border-color 0.15s;
+}
+.date-input:focus { outline: none; border-color: var(--sidebar-accent); }
+
+.ampm-btn {
+  padding: 3px 9px;
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-secondary);
+}
+.ampm-btn.active-am { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+.ampm-btn.active-pm { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+
+.duration-badge {
+  font-size: 10.5px;
+  background: #e8f4fd;
+  color: #1a73e8;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.extra-events-section { margin-top: 10px; }
+.extra-events-section h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); }
+.extra-event-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: #f8faff;
+  border: 1.5px dashed var(--border);
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+.extra-event-add input {
+  padding: 5px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-main);
+  font-size: 13px;
+}
+.extra-event-list { display: flex; flex-direction: column; gap: 4px; }
+.extra-event-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+.extra-event-item .evt-name { font-weight: 700; flex: 1; }
+.extra-event-item .evt-date { font-family: var(--font-mono); color: var(--text-secondary); font-size: 12px; }
+.extra-event-item .evt-ampm { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.extra-event-item .btn-del { background: none; border: none; color: var(--red); cursor: pointer; font-size: 15px; padding: 0 2px; }
+
+/* ── SEARCH PANEL ── */
+#panel-search {
+  background: var(--search-section);
+}
+.search-form {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.search-form label { font-weight: 700; font-size: var(--fs-base); }
+.search-form select, .search-form input[type="date"] {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: var(--fs-base);
+}
+.search-results { display: flex; flex-direction: column; gap: 10px; }
+.search-result-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.search-result-card .date-badge {
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  min-width: 90px;
+  text-align: center;
+}
+.period-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.period-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.period-badge.avail { background: #d1fae5; color: #065f46; }
+.period-badge.booked { background: #fee2e2; color: #991b1b; }
+
+/* ── ADMIN PANEL ── */
+#panel-admin {
+  background: var(--admin-section);
+}
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 16px;
+}
+.admin-login h3 { font-size: var(--fs-xl); font-weight: 800; color: var(--text-primary); }
+.admin-login p { color: var(--text-secondary); font-size: var(--fs-base); }
+.admin-login input {
+  padding: 10px 18px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--font-main);
+  font-size: var(--fs-base);
+  width: 280px;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+.admin-content { padding: 24px; }
+.admin-section-card {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+.admin-section-card h3 { font-size: var(--fs-lg); font-weight: 700; margin-bottom: 14px; }
+.admin-table { width: 100%; border-collapse: collapse; }
+.admin-table th {
+  background: var(--main-bg);
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border);
+}
+.admin-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.admin-table tr:hover td { background: var(--main-bg); }
+
+/* ── MODAL / POPUP ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-box {
+  background: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 620px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.modal-header {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 { font-size: var(--fs-base); font-weight: 800; }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0 4px;
+}
+.modal-body { padding: 10px 16px; }
+
+.classroom-section { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.classroom-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.classroom-section h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.classroom-section h4 .room-name {
+  background: var(--sidebar-bg);
+  color: #fff;
+  border-radius: 5px;
+  padding: 1px 8px;
+  font-size: 12px;
+}
+
+.period-row {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.period-btn {
+  min-width: 44px;
+  padding: 4px 4px 3px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--font-mono);
+  line-height: 1.3;
+  text-align: center;
+}
+.period-btn.avail { background: var(--green); color: #fff; }
+.period-btn.booked { background: var(--red); color: #fff; }
+.period-btn.unavail { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+
+.booking-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+.booking-input {
+  padding: 4px 9px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 90px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+}
+.booking-input::placeholder { color: var(--text-light); text-transform: none; letter-spacing: normal; font-size: 11px; }
+.booking-input:focus { outline: none; border-color: var(--blue); }
+
+.history-section {
+  margin-top: 6px;
+  background: #f8faff;
+  border-radius: 6px;
+  padding: 7px 10px;
+}
+.history-section h5 { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 5px; }
+.history-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11.5px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-item:last-child { border-bottom: none; }
+.history-badge {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.history-badge.booked-b { background: #fee2e2; color: #991b1b; }
+.history-badge.cancel-b { background: #d1fae5; color: #065f46; }
+.history-badge.change-b { background: #dbeafe; color: #1e40af; }
+
+/* ── TOAST ── */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--sidebar-bg);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.25s ease;
+  max-width: 320px;
+}
+.toast.success { border-left: 4px solid var(--green); }
+.toast.error { border-left: 4px solid var(--red); }
+.toast.info { border-left: 4px solid var(--sidebar-accent); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Utils */
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.text-sm { font-size: var(--fs-sm); }
+.text-muted { color: var(--text-secondary); }
+.fw-700 { font-weight: 700; }
+
+.btn:disabled, button:disabled {
+  cursor: not-allowed !important;
+}
+
+.booking-form .btn-outline:disabled {
+  opacity: .4;
+  pointer-events: none;
+}
+
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+
+/* ── URL MODAL ── */
+.url-modal-box {
+  background: var(--card-bg);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 480px;
+  padding: 28px 28px 24px;
+  animation: modalIn 0.2s ease;
+}
+.url-modal-box h3 { font-size: var(--fs-lg); font-weight: 800; margin-bottom: 6px; }
+.url-modal-box p  { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height:1.6; }
+.url-modal-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  margin-bottom: 14px;
+  transition: border-color .15s;
+}
+.url-modal-input:focus { outline:none; border-color: var(--sidebar-accent); }
+.url-modal-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+.url-status {
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.url-status.connected { background:#d1fae5; color:#065f46; }
+.url-status.disconnected { background:#fee2e2; color:#991b1b; }
+
+/* ── HAMBURGER BUTTON (mobile only) ── */
+#hamburger {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 300;
+  background: var(--sidebar-bg);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: var(--shadow);
+}
+#hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.25s;
+}
+
+/* Sidebar overlay (mobile) */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 150;
+}
+#sidebar-overlay.active { display: block; }
+
+@media (max-width: 720px) {
+  #hamburger { display: flex; }
+
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 220px;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+  }
+  #sidebar.open { transform: translateX(0); }
+
+  /* Main area: full width, leave room for hamburger */
+  #main { width: 100%; }
+
+  .cal-toolbar {
+    padding-left: 52px; /* avoid hamburger overlap */
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .cal-toolbar h2 { font-size: 15px; min-width: 120px; }
+
+  .schedule-grid { grid-template-columns: 1fr; }
+  .modal-box { max-width: 98vw; }
+
+  /* Search panel mobile */
+  .search-form { flex-wrap: wrap; gap: 6px; }
+  .search-result-card { flex-direction: column; align-items: flex-start; }
+
+  /* Admin panel mobile */
+  .admin-table th, .admin-table td { padding: 7px 8px; font-size: 12px; }
+  .admin-section-card { padding: 14px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 모바일 햄버거 버튼 -->
+<button id="hamburger" onclick="toggleSidebar()" aria-label="메뉴 열기">
+  <span></span><span></span><span></span>
+</button>
+<!-- 모바일 사이드바 오버레이 -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav id="sidebar">
+  <div class="logo">📚 교실예약<span>Classroom Booking</span></div>
+
+  <div class="nav-section">
+    <div class="nav-label">메뉴</div>
+    <div class="nav-item active" data-panel="calendar" onclick="switchPanel('calendar')">
+      <span class="icon">📅</span><span>캘린더</span>
+    </div>
+
+    <div class="nav-item" data-toggle="dept-sub" onclick="toggleDept(this)">
+      <span class="icon">🏫</span><span>과·팀</span>
+    </div>
+    <div id="dept-sub" class="dept-sub" style="display:none">
+      <!-- KA~KF generated by JS -->
+    </div>
+
+    <div class="nav-item" data-panel="search" onclick="switchPanel('search')">
+      <span class="icon">🔍</span><span>검색</span>
+    </div>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+
+  <div class="admin-btn" onclick="switchPanel('admin')">⚙ 관리</div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<div id="main">
+
+  <!-- ── CALENDAR PANEL ── -->
+  <div id="panel-calendar" class="section-panel active">
+    <div class="cal-toolbar">
+      <h2 id="cal-title">2026년 5월</h2>
+      <button class="btn-nav" onclick="calNav(-1)">◀</button>
+      <button class="btn-nav" onclick="calNav(1)">▶</button>
+      <button class="btn btn-primary btn-sm" onclick="goToday()">TODAY</button>
+      <div style="flex:1"></div>
+     <button class="btn btn-outline btn-sm" id="btn-week" onclick="setCalView('week')">Week</button>
+<button class="btn btn-outline btn-sm active" id="btn-month" onclick="setCalView('month')">Month</button>
+      <button class="btn btn-outline btn-sm" title="Google Sheets 동기화 설정" onclick="openUrlModal()" style="margin-left:8px;" id="btn-sync">☁ 동기화<span id="sync-status" class="url-status disconnected">미연결</span></button>
+    </div>
+    <div class="cal-legend" id="cal-legend"></div>
+    <div id="cal-container"></div>
+  </div>
+
+  <!-- ── DEPT PANEL ── -->
+  <div id="panel-dept" class="section-panel">
+    <div class="panel-header">
+      <h2 id="dept-panel-title">과·팀 관리</h2>
+    </div>
+    <div class="panel-body" id="dept-panel-body">
+      <div style="color:var(--text-secondary);font-size:15px;text-align:center;margin-top:40px;">왼쪽 사이드바에서 팀을 선택하세요.</div>
+    </div>
+  </div>
+
+  <!-- ── SEARCH PANEL ── -->
+  <div id="panel-search" class="section-panel">
+    <div class="panel-header">
+      <h2>예약 검색</h2>
+    </div>
+    <div class="panel-body">
+      <div class="search-form">
+        <label>검색 단위</label>
+        <select id="search-unit" onchange="onSearchUnitChange()">
+          <option value="date">날짜</option>
+          <option value="week">주간</option>
+          <option value="month">월간</option>
+        </select>
+        <input type="date" id="search-date" value="">
+        <button class="btn btn-primary" onclick="doSearch()">검색</button>
+        <label style="margin-left:12px;">
+          <input type="checkbox" id="search-avail-only"> 예약 가능만 표시
+        </label>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN PANEL ── -->
+  <div id="panel-admin" class="section-panel">
+    <div class="panel-header"><h2>⚙ 관리자</h2></div>
+    <div id="admin-login-wrap" class="admin-login">
+      <h3>🔐 관리자 로그인</h3>
+      <p>관리자 비밀번호를 입력하세요</p>
+      <input type="password" id="admin-pw-input" placeholder="비밀번호" onkeydown="if(event.key==='Enter')checkAdmin()">
+      <button class="btn btn-primary" onclick="checkAdmin()">확인</button>
+    </div>
+    <div id="admin-content-wrap" class="admin-content" style="display:none;overflow-y:auto;flex:1;">
+      <div class="admin-section-card">
+        <h3>과(KA~KF) 관리</h3>
+        <table class="admin-table" id="admin-dept-table">
+          <thead><tr><th>과명</th><th>팀 수</th><th>작업</th></tr></thead>
+          <tbody id="admin-dept-tbody"></tbody>
+        </table>
+        <div style="margin-top:12px;display:flex;gap:8px;">
+          <input class="classroom-input" id="new-dept-input" placeholder="새 과명 (예: KG)">
+          <button class="btn btn-primary" onclick="addDept()">추가</button>
+        </div>
+      </div>
+      <div class="admin-section-card">
+        <h3>팀 관리</h3>
+        <table class="admin-table" id="admin-team-table">
+          <thead><tr><th>팀명</th><th>과</th><th>교실</th><th>작업</th></tr></thead>
+          <tbody id="admin-team-tbody"></tbody>
+        </table>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+          <div style="font-weight:700;font-size:13px;color:var(--text-secondary);margin-bottom:8px;">➕ 팀 추가</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select id="new-team-dept" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:7px;font-family:var(--font-main);font-size:13px;">
+              <option value="">과 선택</option>
+            </select>
+            <input class="classroom-input" id="new-team-num" placeholder="팀 번호 (예: 6)" type="number" min="1" max="20" style="width:120px;">
+            <button class="btn btn-primary" onclick="addTeam()">팀 추가</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">※ 팀명은 과명+번호로 자동 생성됩니다. (예: KA6)</div>
+        </div>
+      </div>
+
+      <!-- ── Google Sheets 동기화 설정 ── -->
+      <div class="admin-section-card">
+        <h3>☁ Google Sheets 연동</h3>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.6;">
+          Apps Script 웹앱 URL을 입력하면 데이터가 Google Sheets와 동기화됩니다.<br>
+          URL을 비워두고 저장하면 연동이 해제됩니다.
+        </p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:13px;font-weight:600;color:var(--text-secondary);">현재 상태:</span>
+          <span id="admin-sync-status" class="url-status disconnected">미연결</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <input id="admin-url-input" type="url"
+            placeholder="https://script.google.com/macros/s/.../exec"
+            style="flex:1;min-width:260px;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-mono);font-size:13px;transition:border-color .15s;"
+            onfocus="this.style.borderColor='var(--sidebar-accent)'" onblur="this.style.borderColor='var(--border)'"
+            onkeydown="if(event.key==='Enter')saveAdminUrl()">
+          <button class="btn btn-primary" onclick="saveAdminUrl()">저장 &amp; 동기화</button>
+          <button class="btn btn-outline" style="color:var(--red)" onclick="clearAdminUrl()">연동 해제</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════ URL INPUT MODAL ══════════ -->
+<div class="modal-overlay hidden" id="url-modal">
+  <div class="url-modal-box">
+    <h3>☁ Google Sheets 연동</h3>
+    <p>Apps Script 웹앱 URL을 입력하면 데이터가 Google Sheets와 동기화됩니다.<br>
+       URL을 비워두고 저장하면 연동이 해제됩니다.</p>
+    <input class="url-modal-input" id="url-modal-input" type="url"
+      placeholder="https://script.google.com/macros/s/.../exec"
+      onkeydown="if(event.key==='Enter')saveUrl()">
+    <div class="url-modal-actions">
+      <button class="btn btn-outline" onclick="closeUrlModal()">취소</button>
+      <button class="btn btn-outline" style="color:var(--red)" onclick="clearUrl()">연동 해제</button>
+      <button class="btn btn-primary" onclick="saveUrl()">저장 &amp; 동기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ BOOKING MODAL ══════════ -->
+<div class="modal-overlay hidden" id="booking-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">교실 예약</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+/* ════════════════════════════════
+   DATA STORE
+════════════════════════════════ */
+const ADMIN_PASSWORD = 'admin1234';
+let isAdminLoggedIn = false;
+
+// US Federal Holidays (2025-2027)
+const US_HOLIDAYS = {
+  '2025-01-01':'New Year\'s Day','2025-01-20':'MLK Day','2025-02-17':'Presidents\' Day',
+  '2025-05-26':'Memorial Day','2025-06-19':'Juneteenth','2025-07-04':'Independence Day',
+  '2025-09-01':'Labor Day','2025-10-13':'Columbus Day','2025-11-11':'Veterans Day',
+  '2025-11-27':'Thanksgiving','2025-12-25':'Christmas',
+  '2026-01-01':'New Year\'s Day','2026-01-19':'MLK Day','2026-02-16':'Presidents\' Day',
+  '2026-05-25':'Memorial Day','2026-06-19':'Juneteenth','2026-07-03':'Independence Day',
+  '2026-09-07':'Labor Day','2026-10-12':'Columbus Day','2026-11-11':'Veterans Day',
+  '2026-11-26':'Thanksgiving','2026-12-25':'Christmas',
+  '2027-01-01':'New Year\'s Day','2027-01-18':'MLK Day','2027-02-15':'Presidents\' Day',
+  '2027-05-31':'Memorial Day','2027-06-18':'Juneteenth','2027-07-05':'Independence Day',
+  '2027-09-06':'Labor Day','2027-10-11':'Columbus Day','2027-11-11':'Veterans Day',
+  '2027-11-25':'Thanksgiving','2027-12-24':'Christmas'
+};
+
+const EVENT_TYPES = [
+  { key:'academic_break',  label:'Academic Break',    color:'#e74c3c' },
+  { key:'immersion2',      label:'2학기 Immersion',   color:'#8e44ad' },
+  { key:'immersion3',      label:'3학기 Immersion',   color:'#2980b9' },
+  { key:'cookery',         label:'Cookery',            color:'#e67e22' },
+  { key:'ooca1',           label:'1학기 OOCA',         color:'#27ae60' },
+  { key:'ooca2',           label:'2학기 OOCA',         color:'#16a085' },
+  { key:'ooca3',           label:'3학기 OOCA',         color:'#1abc9c' },
+  { key:'dlpt',            label:'DLPT',               color:'#d35400' },
+];
+
+// App state
+let appData = JSON.parse(localStorage.getItem('classroomApp') || 'null') || {
+  depts: ['KA','KB','KC','KD','KE','KF'],
+  teams: {},    // { 'KA1': { classrooms:[], schedule:{}, extraEvents:[], ampm:{} } }
+  bookings: {}, // { 'YYYY-MM-DD': { 'Room101': { 0:'KA1', 1:null, ... } } }
+  bookingHistory: {} // { 'YYYY-MM-DD_Room101_P3': [{time,team,action},...] }
+};
+
+// Generate teams if missing
+appData.depts.forEach(d => {
+  for(let i=1;i<=5;i++){
+    const k = d+i;
+    if(!appData.teams[k]) appData.teams[k] = { classrooms:[], schedule:{}, extraEvents:[], ampm:{} };
+  }
+});
+
+function save(){ localStorage.setItem('classroomApp', JSON.stringify(appData)); }
+
+/* ════════════════════════════════
+   CALENDAR STATE
+════════════════════════════════ */
+let calView = 'month';
+let calDate = new Date();
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+const DAYS_KO = ['월','화','수','목','금'];
+const MONTHS_KO = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+/* ════════════════════════════════
+   PANEL SWITCHING
+════════════════════════════════ */
+/* ── 모바일 사이드바 ── */
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  const open = sb.classList.toggle('open');
+  ov.classList.toggle('active', open);
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+function switchPanel(panel) {
+  closeSidebar(); // 모바일에서 패널 전환 시 사이드바 닫기
+  if(panel !== 'admin' && isAdminLoggedIn) {
+    isAdminLoggedIn = false;
+    // 관리자 로그인 화면 초기화
+    document.getElementById('admin-login-wrap').style.display='';
+    document.getElementById('admin-content-wrap').style.display='none';
+    document.getElementById('admin-pw-input').value='';
+    updateSyncBtnVisibility();
+  }
+  document.querySelectorAll('.section-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+panel).classList.add('active');
+  document.querySelectorAll('.nav-item[data-panel]').forEach(n=>n.classList.remove('active'));
+  const ni = document.querySelector(`.nav-item[data-panel="${panel}"]`);
+  if(ni) ni.classList.add('active');
+}
+
+function toggleDept(el) {
+  const sub = document.getElementById('dept-sub');
+  const isOpen = sub.style.display !== 'none';
+  sub.style.display = isOpen ? 'none' : 'block';
+}
+
+/* ════════════════════════════════
+   SIDEBAR DEPT/TEAM RENDER
+════════════════════════════════ */
+function renderSidebar() {
+  const sub = document.getElementById('dept-sub');
+  sub.innerHTML = '';
+  appData.depts.forEach(d => {
+    const dEl = document.createElement('div');
+    dEl.className = 'nav-item dept-toggle';
+    dEl.innerHTML = `<span class="icon">📂</span><span>${d}</span>`;
+    dEl.onclick = () => toggleDeptTeams(d, dEl);
+    sub.appendChild(dEl);
+
+    const teamSub = document.createElement('div');
+    teamSub.id = `teams-${d}`;
+    teamSub.style.display = 'none';
+    // 해당 과에 속한 팀 목록을 실제 데이터 기반으로 렌더링
+    const deptTeams = Object.keys(appData.teams)
+      .filter(k => k.startsWith(d) && k.slice(d.length).match(/^\d+$/))
+      .sort((a,b) => parseInt(a.slice(d.length)) - parseInt(b.slice(d.length)));
+    deptTeams.forEach(k => {
+      const tEl = document.createElement('div');
+      tEl.className = 'nav-item dept-sub';
+      tEl.style.paddingLeft = '46px';
+      tEl.innerHTML = `<span class="icon">👥</span><span>${k}</span>`;
+      tEl.onclick = (e) => { e.stopPropagation(); openTeam(k); };
+      teamSub.appendChild(tEl);
+    });
+    sub.appendChild(teamSub);
+  });
+}
+
+function toggleDeptTeams(dept, el) {
+  const sub = document.getElementById(`teams-${dept}`);
+  const isOpen = sub.style.display !== 'none';
+  sub.style.display = isOpen ? 'none' : 'block';
+}
+
+function openTeam(teamKey) {
+  switchPanel('dept');
+  document.getElementById('dept-panel-title').textContent = `팀 상세: ${teamKey}`;
+  renderTeamDetail(teamKey);
+}
+
+/* ════════════════════════════════
+   TEAM DETAIL PAGE
+════════════════════════════════ */
+function renderTeamDetail(tk) {
+  const team = appData.teams[tk];
+  const body = document.getElementById('dept-panel-body');
+
+  const schedItems = [
+    { key:'academic_break',  label:'Academic Break',  duration:'입력 날짜 포함 그 주 금요일까지', hasAmpm:false },
+    { key:'immersion2',      label:'2학기 Immersion',  duration:'입력 날짜부터 2일', hasAmpm:false },
+    { key:'cookery',         label:'Cookery',           duration:'1일', hasAmpm:false },
+    { key:'ooca1',           label:'1학기 OOCA',        duration:'AM/PM 선택', hasAmpm:true },
+    { key:'immersion3',      label:'3학기 Immersion',  duration:'입력 날짜부터 2일', hasAmpm:false },
+    { key:'ooca2',           label:'2학기 OOCA',        duration:'AM/PM 선택', hasAmpm:true },
+    { key:'dlpt',            label:'DLPT',              duration:'그 주 목요일 ~ 다음 주 수요일', hasAmpm:false },
+    { key:'ooca3',           label:'3학기 OOCA',        duration:'AM/PM 선택', hasAmpm:true },
+  ];
+
+  // Classrooms
+  const classrooms = team.classrooms.length ? team.classrooms : ['','',''];
+  let crHtml = classrooms.map((c,i) => `
+    <input class="classroom-input" value="${c}" placeholder="(예: ${101+i})"
+      oninput="updateClassroom('${tk}',${i},this.value)" data-cr-idx="${i}">
+  `).join('');
+
+  const canAdd = classrooms.length < 5;
+
+  // Schedule grid
+  const schedHtml = schedItems.map(s => {
+    const dateVal = team.schedule[s.key+'_date'] || '';
+    const ampmVal = team.schedule[s.key+'_ampm'] || '';
+    let ampmHtml = '';
+    if(s.hasAmpm) {
+      ampmHtml = `
+        <button class="ampm-btn ${ampmVal==='AM'?'active-am':''}" onclick="toggleAmpm('${tk}','${s.key}','AM',this)">AM</button>
+        <button class="ampm-btn ${ampmVal==='PM'?'active-pm':''}" onclick="toggleAmpm('${tk}','${s.key}','PM',this)">PM</button>
+      `;
+    }
+    const dur = s.hasAmpm ? '' : `<span class="duration-badge">${s.duration}</span>`;
+    return `
+      <div class="schedule-item">
+        <label>${s.label}</label>
+        <div class="schedule-item-row">
+          <div class="schedule-item-row-inner">
+            <input class="date-input" placeholder="MM/DD/YY" value="${dateVal}"
+              oninput="formatDateInput(this)" onblur="saveScheduleDate('${tk}','${s.key}',this.value)"
+              data-raw>
+            ${ampmHtml}
+            ${dur}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Extra events
+  const extras = team.extraEvents || [];
+  const extraListHtml = extras.map((e,i) => `
+    <div class="extra-event-item">
+      <span class="evt-name">${e.name}</span>
+      <span class="evt-date">${e.date}</span>
+      <span class="evt-ampm" style="background:${e.ampm==='AM'?'#fef3c7':'#dbeafe'};color:${e.ampm==='AM'?'#92400e':'#1e40af'}">${e.ampm||'-'}</span>
+      <button class="btn-del" onclick="deleteExtra('${tk}',${i})">🗑</button>
+    </div>
+  `).join('');
+
+  body.innerHTML = `
+    <div class="team-detail-card">
+      <h3>📋 ${tk} 팀 정보</h3>
+
+      <div>
+        <div style="font-weight:700;font-size:13px;color:var(--text-secondary);margin-bottom:6px;">🏫 배정 교실</div>
+        <div class="classroom-row" id="cr-row-${tk}">${crHtml}</div>
+        ${canAdd ? `<button class="btn btn-outline btn-sm" onclick="addClassroom('${tk}')">+ 교실 추가</button>` : ''}
+      </div>
+
+      <div style="margin-top:12px;">
+        <div style="font-weight:700;font-size:13px;color:var(--text-secondary);margin-bottom:6px;">📅 학사 일정</div>
+        <div class="schedule-grid">${schedHtml}</div>
+      </div>
+
+      <div class="extra-events-section">
+        <h4>➕ 추가 행사</h4>
+        <div class="extra-event-add">
+          <input id="extra-name-${tk}" placeholder="행사명" style="width:120px;">
+          <input id="extra-date-${tk}" class="date-input" placeholder="MM/DD/YY" oninput="formatDateInput(this)" style="width:110px;">
+          <button class="ampm-btn" id="extra-am-${tk}" onclick="toggleExtraAmpm('${tk}','AM')">AM</button>
+          <button class="ampm-btn" id="extra-pm-${tk}" onclick="toggleExtraAmpm('${tk}','PM')">PM</button>
+          <button class="btn btn-primary btn-sm" onclick="addExtra('${tk}')">저장</button>
+        </div>
+        <div class="extra-event-list">${extraListHtml || '<div style="color:var(--text-light);font-size:13px;">추가된 행사가 없습니다.</div>'}</div>
+      </div>
+
+      <div style="margin-top:14px;text-align:right;">
+        <button class="btn btn-primary btn-sm" onclick="saveTeamAll('${tk}')">💾 전체 저장</button>
+      </div>
+    </div>
+  `;
+}
+
+let extraAmpmState = {};
+
+function toggleExtraAmpm(tk, val) {
+  if(extraAmpmState[tk] === val) {
+    extraAmpmState[tk] = '';
+  } else {
+    extraAmpmState[tk] = val;
+  }
+  const am = document.getElementById(`extra-am-${tk}`);
+  const pm = document.getElementById(`extra-pm-${tk}`);
+  if(am) am.className = 'ampm-btn' + (extraAmpmState[tk]==='AM'?' active-am':'');
+  if(pm) pm.className = 'ampm-btn' + (extraAmpmState[tk]==='PM'?' active-pm':'');
+}
+
+function addExtra(tk) {
+  const name = document.getElementById(`extra-name-${tk}`).value.trim();
+  const date = document.getElementById(`extra-date-${tk}`).value.trim();
+  if(!name||!date){ showToast('행사명과 날짜를 입력하세요.','error'); return; }
+  const extras = appData.teams[tk].extraEvents || [];
+  if(extras.length >= 10){ showToast('최대 10개까지 추가 가능합니다.','error'); return; }
+  const ampm = extraAmpmState[tk]||'';
+  // GS에 저장 후 로컬 id 부여
+  const localId = Date.now().toString(36);
+  extras.push({ id: localId, name, date, ampm });
+  appData.teams[tk].extraEvents = extras;
+  save();
+  showToast('행사가 추가되었습니다.','success');
+  // GS 동기화
+  if(APPS_SCRIPT_URL) {
+    syncCall('saveExtraEvent', { team_key: tk, event_name: name, date_value: date, ampm });
+  }
+  openTeam(tk);
+}
+
+function deleteExtra(tk, idx) {
+  const extras = appData.teams[tk].extraEvents || [];
+  const removed = extras[idx];
+  extras.splice(idx, 1);
+  appData.teams[tk].extraEvents = extras;
+  save();
+  // GS 동기화
+  if(APPS_SCRIPT_URL && removed && removed.id) {
+    syncCall('deleteExtraEvent', { id: removed.id });
+  }
+  openTeam(tk);
+}
+
+function updateClassroom(tk, idx, val) {
+  while(appData.teams[tk].classrooms.length <= idx) appData.teams[tk].classrooms.push('');
+  appData.teams[tk].classrooms[idx] = val;
+}
+
+function addClassroom(tk) {
+  if(!appData.teams[tk].classrooms) appData.teams[tk].classrooms = [];
+  if(appData.teams[tk].classrooms.length < 5) {
+    appData.teams[tk].classrooms.push('');
+    openTeam(tk);
+  }
+}
+
+function saveScheduleDate(tk, key, val) {
+  appData.teams[tk].schedule[key+'_date'] = val;
+  save();
+  renderCalendar();
+  // GS 동기화: 날짜가 입력될 때마다 즉시 저장
+  if(APPS_SCRIPT_URL && val) {
+    syncCall('saveSchedule', {
+      team_key: tk,
+      event_key: key,
+      date_value: val,
+      ampm: appData.teams[tk].schedule[key+'_ampm'] || ''
+    });
+  }
+}
+
+function toggleAmpm(tk, key, val, btn) {
+  const current = appData.teams[tk].schedule[key+'_ampm'] || '';
+  const newVal = current === val ? '' : val;
+  appData.teams[tk].schedule[key+'_ampm'] = newVal;
+  save();
+  // Update button classes
+  const parent = btn.closest('.schedule-item-row');
+  parent.querySelectorAll('.ampm-btn').forEach(b => {
+    b.className = 'ampm-btn';
+    if(b.textContent === newVal) b.className += newVal==='AM' ? ' active-am' : ' active-pm';
+  });
+  renderCalendar();
+  // GS 동기화: AM/PM 변경 즉시 저장
+  if(APPS_SCRIPT_URL) {
+    const dateVal = appData.teams[tk].schedule[key+'_date'] || '';
+    if(dateVal) syncCall('saveSchedule', { team_key:tk, event_key:key, date_value:dateVal, ampm:newVal });
+  }
+}
+
+function saveTeamAll(tk) {
+  // Sync classrooms from inputs
+  const crRow = document.getElementById(`cr-row-${tk}`);
+  if(crRow) {
+    const inputs = crRow.querySelectorAll('.classroom-input');
+    appData.teams[tk].classrooms = Array.from(inputs).map(i=>i.value.trim()).filter(v=>v);
+  }
+  save();
+  showToast(`${tk} 팀 정보가 저장되었습니다.`,'success');
+  renderCalendar();
+  // GS 동기화
+  if(APPS_SCRIPT_URL) syncSaveTeam(tk);
+}
+
+function formatDateInput(el) {
+  let v = el.value.replace(/\D/g,'');
+  if(v.length >= 6 && !v.includes('/')) {
+    // 052026 → 05/20/26
+    v = v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4,6);
+  } else {
+    if(v.length > 2 && v[2]!=='/') v = v.slice(0,2)+'/'+v.slice(2);
+    if(v.length > 5 && v[5]!=='/') v = v.slice(0,5)+'/'+v.slice(5);
+  }
+  el.value = v;
+}
+
+/* ════════════════════════════════
+   CALENDAR ENGINE
+════════════════════════════════ */
+function setCalView(v) {
+  calView = v;
+  document.getElementById('btn-week').classList.toggle('active', v==='week');
+  document.getElementById('btn-month').classList.toggle('active', v==='month');
+  renderCalendar();
+}
+
+function calNav(dir) {
+  if(calView==='week') calDate = addDays(calDate, dir*7);
+  else { calDate.setMonth(calDate.getMonth()+dir); calDate = new Date(calDate); }
+  renderCalendar();
+}
+
+function goToday() { calDate = new Date(); renderCalendar(); }
+
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+function isoDate(d) { return d.toISOString().slice(0,10); }
+
+function getMonday(d) {
+  const day = d.getDay(); // 0=Sun
+  const diff = day===0 ? -6 : 1-day;
+  return addDays(d, diff);
+}
+
+function renderCalendar() {
+  const container = document.getElementById('cal-container');
+  const title = document.getElementById('cal-title');
+  if(calView==='week') renderWeekView(container, title);
+  else renderMonthView(container, title);
+  renderLegend();
+}
+
+/* ── Collect all events into a date-keyed map ── */
+function getAllEvents() {
+  const events = {}; // { 'YYYY-MM-DD': [{label,color,teamKey},...] }
+  function addEv(dateStr, label, color, tk) {
+    if(!dateStr) return;
+    if(!events[dateStr]) events[dateStr]=[];
+    events[dateStr].push({label, color, tk});
+  }
+  function parseDate(str) {
+    // MM/DD/YY
+    if(!str||str.length<6) return null;
+    const p = str.split('/');
+    if(p.length<3) return null;
+    const y = parseInt(p[2]) + (parseInt(p[2])<50 ? 2000 : 1900);
+    return new Date(y, parseInt(p[0])-1, parseInt(p[1]));
+  }
+
+  Object.entries(appData.teams).forEach(([tk, team]) => {
+    const sc = team.schedule || {};
+
+    // Academic Break: date ~ that week's Friday (5 days including start)
+    const ab = parseDate(sc.academic_break_date);
+    if(ab) {
+      let d = new Date(ab);
+      for(let i=0;i<5;i++){
+        if(d.getDay()>=1&&d.getDay()<=5) addEv(isoDate(d),'Academic Break',EVENT_TYPES[0].color,tk);
+        d=addDays(d,1); if(d.getDay()===6) d=addDays(d,2); // skip weekend
+      }
+    }
+
+    // 2학기 Immersion: 2 days
+    const im2 = parseDate(sc.immersion2_date);
+    if(im2){
+      addEv(isoDate(im2),'2학기 Immersion',EVENT_TYPES[1].color,tk);
+      addEv(isoDate(addDays(im2,1)),'2학기 Immersion',EVENT_TYPES[1].color,tk);
+    }
+
+    // 3학기 Immersion: 2 days
+    const im3 = parseDate(sc.immersion3_date);
+    if(im3){
+      addEv(isoDate(im3),'3학기 Immersion',EVENT_TYPES[2].color,tk);
+      addEv(isoDate(addDays(im3,1)),'3학기 Immersion',EVENT_TYPES[2].color,tk);
+    }
+
+    // Cookery: 1 day
+    const ck = parseDate(sc.cookery_date);
+    if(ck) addEv(isoDate(ck),'Cookery',EVENT_TYPES[3].color,tk);
+
+    // OOCA1,2,3 with AMPM
+    ['ooca1','ooca2','ooca3'].forEach((k,i) => {
+      const d = parseDate(sc[k+'_date']);
+      if(!d) return;
+      const ap = sc[k+'_ampm']||'';
+      const suffix = ap ? ` (${ap})` : '';
+      addEv(isoDate(d), EVENT_TYPES[4+i].label+suffix, EVENT_TYPES[4+i].color, tk);
+    });
+
+    // DLPT: that week's Thursday ~ next week's Wednesday
+    const dlpt = parseDate(sc.dlpt_date);
+    if(dlpt){
+      const day = dlpt.getDay(); // 0=Sun
+      const toThursday = day<=4 ? 4-day : 4+(7-day);
+      let start = addDays(dlpt, toThursday-day===0&&day!==4 ? 0 : toThursday);
+      // Find Thursday of the week
+      let thu = new Date(dlpt);
+      while(thu.getDay()!==4) thu=addDays(thu,1);
+      let cur = new Date(thu);
+      for(let i=0;i<7;i++){
+        if(cur.getDay()>=1&&cur.getDay()<=5) addEv(isoDate(cur),'DLPT',EVENT_TYPES[7].color,tk);
+        cur=addDays(cur,1);
+      }
+    }
+
+    // Extra events
+    (team.extraEvents||[]).forEach(ev=>{
+      const d=parseDate(ev.date);
+      if(!d) return;
+      const suffix = ev.ampm ? ` (${ev.ampm})` : '';
+      addEv(isoDate(d), ev.name+suffix, '#7f8c8d', tk);
+    });
+  });
+
+  return events;
+}
+
+/* ── WEEK VIEW ── */
+function renderWeekView(container, titleEl) {
+  const mon = getMonday(calDate);
+  const weekDays = [0,1,2,3,4].map(i=>addDays(mon,i));
+  const todayStr = isoDate(new Date());
+
+  titleEl.textContent = `${weekDays[0].getFullYear()}년 ${MONTHS_KO[weekDays[0].getMonth()]} ${weekDays[0].getDate()}일 주`;
+
+  const allEvents = getAllEvents();
+
+  const hours = [7,8,9,10,11,12,13,14,15,16,17];
+  const hourLabels = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+
+  let html = `<div class="cal-week">
+    <div class="cal-week-header">
+      <div class="day-head" style="color:var(--sidebar-accent);font-size:11px;">시간</div>`;
+  weekDays.forEach((d,i)=>{
+    const ds = isoDate(d);
+    const isToday = ds===todayStr;
+    const isHol = !!US_HOLIDAYS[ds];
+    html += `<div class="day-head ${isToday?'today-head':''}">
+      ${DAYS_KO[i]}<small style="${isHol?'color:#ff6b6b':''}${isToday?';color:var(--sidebar-accent)':''}">${d.getDate()}</small>
+    </div>`;
+  });
+  html += `</div><div class="cal-week-body">`;
+
+  hours.forEach((h,hi)=>{
+    html += `<div class="week-hour-label">${hourLabels[hi]}</div>`;
+    weekDays.forEach((d,di)=>{
+      const ds = isoDate(d);
+      const isToday = ds===todayStr;
+      const evs = allEvents[ds]||[];
+      const holiday = US_HOLIDAYS[ds];
+      let evHtml = '';
+      if(holiday) evHtml += `<div class="week-event" style="background:#c0392b;color:#fff">${holiday}</div>`;
+      if(hi===0) evs.forEach(ev=>{
+        const textColor = isColorDark(ev.color) ? '#fff' : '#222';
+        evHtml += `<div class="week-event" style="background:${ev.color};color:${textColor}">${ev.label} (${ev.tk})</div>`;
+      });
+      html += `<div class="week-hour ${isToday?'today-col':''}" onclick="openDayBooking('${ds}')">${evHtml}</div>`;
+    });
+  });
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+/* ── MONTH VIEW ── */
+function renderMonthView(container, titleEl) {
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  titleEl.textContent = `${year}년 ${MONTHS_KO[month]}`;
+  const todayStr = isoDate(new Date());
+
+  const allEvents = getAllEvents();
+
+  // First day of month
+  const firstDay = new Date(year, month, 1);
+  // Start from Monday of that week
+  let start = getMonday(firstDay);
+  // Last day of month
+  const lastDay = new Date(year, month+1, 0);
+  let end = new Date(lastDay);
+  while(end.getDay()!==5) end=addDays(end,1);
+
+  let html = `<div class="cal-month">
+    <div class="cal-month-header">
+      ${DAYS.map(d=>`<div class="day-head">${d}</div>`).join('')}
+    </div>
+    <div class="cal-month-grid" style="flex:1;">`;
+
+  let cur = new Date(start);
+  while(cur <= end) {
+    const day = cur.getDay();
+    if(day===0||day===6){ cur=addDays(cur,1); continue; }
+    const ds = isoDate(cur);
+    const isToday = ds===todayStr;
+    const isOther = cur.getMonth()!==month;
+    const evs = allEvents[ds]||[];
+    const holiday = US_HOLIDAYS[ds];
+
+    let evHtml = '';
+    if(holiday) evHtml += `<div class="cal-event" style="background:#c0392b;color:#fff">🇺🇸 ${holiday}</div>`;
+    evs.slice(0,4).forEach(ev=>{
+      const textColor = isColorDark(ev.color)?'#fff':'#222';
+      evHtml += `<div class="cal-event" style="background:${ev.color};color:${textColor}">${ev.label}</div>`;
+    });
+    if(evs.length>4) evHtml += `<div style="font-size:11px;color:var(--text-light);padding:1px 4px;">+${evs.length-4} more</div>`;
+
+    html += `<div class="cal-day ${isToday?'today':''} ${isOther?'other-month':''}" onclick="openDayBooking('${ds}')">
+      <div class="day-num">${cur.getDate()}</div>
+      ${evHtml}
+    </div>`;
+    cur=addDays(cur,1);
+  }
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+function renderLegend() {
+  const leg = document.getElementById('cal-legend');
+  let html = EVENT_TYPES.map(e=>`
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${e.color}"></div>
+      <span>${e.label}</span>
+    </div>`).join('');
+  html += `<div class="legend-item">
+    <div class="legend-dot" style="background:#7f8c8d"></div>
+    <span>추가 행사</span>
+  </div>`;
+  leg.innerHTML = html;
+}
+
+function isColorDark(hex) {
+  const c = hex.replace('#','');
+  const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);
+  return (0.299*r+0.587*g+0.114*b) < 150;
+}
+
+/* ════════════════════════════════
+   BOOKING MODAL
+════════════════════════════════ */
+let modalState = { date:'', classroom:'', period:null };
+
+function openDayBooking(dateStr) {
+  const dateObj = new Date(dateStr+'T12:00:00');
+  if(dateObj.getDay()===0||dateObj.getDay()===6) return;
+
+  document.getElementById('modal-title').textContent = `교실 예약 — ${dateStr}`;
+
+  // 해당 날짜에 해당하는 (팀, 행사, 교실) 조합을 모두 수집
+  // 행사마다 별도 섹션으로 표시, 동일 팀+교실+행사 중복 방지
+  const sections = [];
+  const seen = new Set(); // 'tk|room|eventLabel' 중복 방지
+  let globalEvtIdx = 0;
+
+  Object.entries(appData.teams).forEach(([tk, team]) => {
+    if(!team.classrooms || team.classrooms.length === 0) return;
+
+    // 이 팀이 이 날짜에 가진 행사 목록 수집
+    const eventsOnDate = getTeamEventsOnDate(tk, dateStr);
+    if(eventsOnDate.length === 0) return;
+
+    team.classrooms.forEach(room => {
+      if(!room) return;
+
+      const periods = getPeriodStatus(dateStr, room, tk);
+      const hasUsable = periods.some(({status}) => status !== 'unavail');
+      if(!hasUsable) return;
+
+      // 행사마다 별도 섹션 생성 (중복 제거)
+      eventsOnDate.forEach(evt => {
+        const dupKey = tk + '|' + room + '|' + evt.label;
+        if(seen.has(dupKey)) return;
+        seen.add(dupKey);
+        sections.push({ tk, room, periods, events: [evt], evtIdx: globalEvtIdx++ });
+      });
+    });
+  });
+
+  let html = '';
+  if(sections.length === 0){
+    html = '<div style="text-align:center;color:var(--text-secondary);padding:20px;">이 날짜에 예약 가능한 교실이 없습니다.<br><small>과·팀 메뉴에서 학사일정을 먼저 등록하세요.</small></div>';
+  } else {
+    sections.forEach(({tk, room, periods, events, evtIdx}) => {
+      html += renderClassroomSection(dateStr, tk, room, periods, events, evtIdx);
+    });
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('booking-modal').classList.remove('hidden');
+}
+
+/* 해당 날짜에 팀이 가진 행사 목록 반환 — 행사명+색상 포함 */
+function getTeamEventsOnDate(tk, dateStr) {
+  const team = appData.teams[tk];
+  const sc = team.schedule || {};
+  const found = [];
+
+  const schedDefs = [
+    { key:'academic_break', label:'Academic Break', color:'#e74c3c',
+      inRange(d){ // 입력일 ~ 그 주 금요일
+        let cur = new Date(d);
+        for(let i=0;i<10;i++){
+          if(cur.getDay()>=1&&cur.getDay()<=5){
+            if(isoDate(cur)===dateStr) return true;
+            if(cur.getDay()===5) break;
+          }
+          cur=addDays(cur,1);
+        }
+        return false;
+      }
+    },
+    { key:'immersion2', label:'2학기 Immersion', color:'#8e44ad',
+      inRange(d){ return isoDate(d)===dateStr||isoDate(addDays(d,1))===dateStr; }
+    },
+    { key:'immersion3', label:'3학기 Immersion', color:'#2980b9',
+      inRange(d){ return isoDate(d)===dateStr||isoDate(addDays(d,1))===dateStr; }
+    },
+    { key:'cookery', label:'Cookery', color:'#e67e22',
+      inRange(d){ return isoDate(d)===dateStr; }
+    },
+    { key:'ooca1', label:'1학기 OOCA', color:'#27ae60',
+      inRange(d){ return isoDate(d)===dateStr; }
+    },
+    { key:'ooca2', label:'2학기 OOCA', color:'#16a085',
+      inRange(d){ return isoDate(d)===dateStr; }
+    },
+    { key:'ooca3', label:'3학기 OOCA', color:'#1abc9c',
+      inRange(d){ return isoDate(d)===dateStr; }
+    },
+    { key:'dlpt', label:'DLPT', color:'#d35400',
+      inRange(d){
+        let thu=new Date(d); while(thu.getDay()!==4) thu=addDays(thu,1);
+        let cur=new Date(thu);
+        for(let i=0;i<7;i++){
+          if(cur.getDay()>=1&&cur.getDay()<=5&&isoDate(cur)===dateStr) return true;
+          cur=addDays(cur,1);
+        }
+        return false;
+      }
+    },
+  ];
+
+  schedDefs.forEach(def => {
+    const dateVal = sc[def.key+'_date']||'';
+    if(!dateVal) return;
+    const d = parseDateStr(dateVal);
+    if(!d) return;
+    if(!def.inRange(d)) return;
+    const ampm = sc[def.key+'_ampm']||'';
+    found.push({ label: def.label + (ampm?` (${ampm})`:''), color: def.color });
+  });
+
+  // 추가행사
+  (team.extraEvents||[]).forEach(ev => {
+    const d = parseDateStr(ev.date);
+    if(d && isoDate(d)===dateStr){
+      const ampm = ev.ampm ? ` (${ev.ampm})` : '';
+      found.push({ label: ev.name+ampm, color:'#7f8c8d' });
+    }
+  });
+
+  return found;
+}
+
+/* 해당 날짜에 팀 스케줄이 있는지 여부만 반환 (하위 호환) */
+function teamHasScheduleOnDate(tk, dateStr) {
+  return getTeamEventsOnDate(tk, dateStr).length > 0;
+}
+
+function getPeriodStatus(dateStr, room, tk) {
+  // Returns array of 9 items (0~8) with status
+  const team = appData.teams[tk];
+  const sc = team.schedule || {};
+
+  // Check AMPM restrictions
+  const unavailPeriods = new Set();
+  const bookedByEvent = new Set();
+
+  ['ooca1','ooca2','ooca3'].forEach(k=>{
+    const dateVal = sc[k+'_date']||'';
+    if(!dateVal) return;
+    const d = parseDateStr(dateVal);
+    if(!d) return;
+    if(isoDate(d)!==dateStr) return;
+    const ampm = sc[k+'_ampm']||'';
+    if(ampm==='AM'){
+      // 5~8 unavailable
+      for(let p=5;p<=8;p++) unavailPeriods.add(p);
+    } else if(ampm==='PM'){
+      // 0~4 booked by event
+      for(let p=0;p<=4;p++) bookedByEvent.add(p);
+    }
+  });
+
+  const dateBookings = appData.bookings[dateStr]?.[room] || {};
+  const result = [];
+  for(let p=0;p<=8;p++){
+    if(unavailPeriods.has(p)) result.push({p,status:'unavail',team:null});
+    else if(bookedByEvent.has(p)) result.push({p,status:'booked',team:tk+'(행사)'});
+    else if(dateBookings[p]) result.push({p,status:'booked',team:dateBookings[p]});
+    else result.push({p,status:'avail',team:null});
+  }
+  return result;
+}
+
+function renderClassroomSection(dateStr, tk, room, periods, events=[], evtIdx=0) {
+  // evtIdx 포함 → 같은 팀+교실이라도 행사별로 DOM id 충돌 없음
+  const roomId = tk + '_' + room.replace(/\s/g,'_') + '_e' + evtIdx;
+
+  const periodBtns = periods.map(({p, status, team: bt}) => {
+    let cls = 'period-btn ';
+    if(status==='avail') cls+='avail';
+    else if(status==='booked') cls+='booked';
+    else cls+='unavail';
+    const title = bt ? `예약팀: ${bt}` : (status==='unavail' ? '예약 불가' : '예약 가능');
+    return `<button class="${cls}" title="${title}" id="pbtn-${roomId}-${p}"
+      onclick="${status!=='unavail' ? `selectPeriod('${dateStr}','${room}',${p},this,'${tk}',${evtIdx})` : ''}">
+      ${p}교시${bt&&status==='booked' ? `<br><span style="font-size:10px;opacity:.85">${bt}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  // 행사 배지 (여러 행사가 있으면 모두 표시)
+  const eventBadges = events.map(ev =>
+    `<span style="display:inline-flex;align-items:center;gap:4px;background:${ev.color};color:#fff;
+      border-radius:4px;padding:1px 7px;font-size:11px;font-weight:700;">${ev.label}</span>`
+  ).join('');
+
+  return `
+    <div class="classroom-section" id="cs-${roomId}">
+      <h4>
+        <span class="room-name">${room}</span>
+        <span style="font-weight:600;font-size:12px;color:var(--text-secondary)">${tk}팀</span>
+        <span style="display:flex;flex-wrap:wrap;gap:3px;margin-left:4px;">${eventBadges}</span>
+      </h4>
+      <div class="period-row" id="periods-${roomId}-${dateStr}">${periodBtns}</div>
+
+      <div class="booking-form">
+        <input class="booking-input" id="booking-team-${roomId}"
+          placeholder="예) KA1" maxlength="5"
+          oninput="this.value=this.value.toUpperCase(); updateActionBtns('${dateStr}','${room}','${tk}',${evtIdx})">
+        <button class="btn btn-primary btn-sm" id="btn-book-${roomId}"
+          onclick="doBooking('${dateStr}','${room}','book','${tk}',${evtIdx})">예약</button>
+        <button class="btn btn-outline btn-sm" id="btn-change-${roomId}"
+          onclick="doBooking('${dateStr}','${room}','change','${tk}',${evtIdx})" disabled
+          style="opacity:.4;cursor:not-allowed">변경</button>
+        <button class="btn btn-outline btn-sm" id="btn-cancel-${roomId}"
+          onclick="doBooking('${dateStr}','${room}','cancel','${tk}',${evtIdx})" disabled
+          style="color:var(--red);opacity:.4;cursor:not-allowed">취소</button>
+      </div>
+
+      <div class="history-section" id="hist-${roomId}" style="display:none">
+        <h5 id="hist-title-${roomId}">📋 예약 내역</h5>
+        <div id="hist-body-${roomId}"></div>
+      </div>
+    </div>
+  `;
+}
+
+/* 교시 버튼 선택 — 단일 선택으로 변경, 선택 시 해당 교시 내역 표시 */
+let selectedPeriods = {}; // { 'roomId_date': number | null }
+
+function selectPeriod(dateStr, room, period, btn, tk, evtIdx) {
+  const roomId = tk + '_' + room.replace(/\s/g,'_') + '_e' + evtIdx;
+  const key = roomId + '_' + dateStr;
+
+  if(selectedPeriods[key] === period) {
+    selectedPeriods[key] = null;
+    btn.style.outline = '';
+    btn.style.outlineOffset = '';
+    hideHistory(roomId);
+  } else {
+    if(selectedPeriods[key] != null) {
+      const old = document.getElementById(`pbtn-${roomId}-${selectedPeriods[key]}`);
+      if(old) { old.style.outline=''; old.style.outlineOffset=''; }
+    }
+    selectedPeriods[key] = period;
+    btn.style.outline = '3px solid #1a1f2e';
+    btn.style.outlineOffset = '-2px';
+    showPeriodHistory(dateStr, room, roomId, period);
+  }
+
+  updateActionBtns(dateStr, room, tk, evtIdx);
+  modalState = { date:dateStr, room, period };
+}
+
+function showPeriodHistory(dateStr, room, roomId, period) {
+  const histEl = document.getElementById(`hist-${roomId}`);
+  const titleEl = document.getElementById(`hist-title-${roomId}`);
+  const bodyEl  = document.getElementById(`hist-body-${roomId}`);
+  if(!histEl) return;
+
+  titleEl.textContent = `📋 ${period}교시 예약 내역`;
+  const hist = getHistoryByPeriod(dateStr, room, period);
+  bodyEl.innerHTML = hist.length
+    ? hist.map(h => `
+        <div class="history-item">
+          <span class="history-badge ${h.action==='booked'?'booked-b':h.action==='cancel'?'cancel-b':'change-b'}">
+            ${h.action==='booked'?'예약':h.action==='cancel'?'취소':'변경'}
+          </span>
+          <span style="color:var(--text-secondary);font-size:12px">${h.time}</span>
+          <span style="color:var(--blue);font-weight:700">${h.team}</span>
+        </div>`).join('')
+    : '<div style="color:var(--text-light);font-size:12px;padding:4px 0;">이 교시의 내역이 없습니다.</div>';
+
+  histEl.style.display = 'block';
+}
+
+function hideHistory(roomId) {
+  const histEl = document.getElementById(`hist-${roomId}`);
+  if(histEl) histEl.style.display = 'none';
+}
+
+function updateActionBtns(dateStr, room, tk, evtIdx) {
+  const roomId = tk + '_' + room.replace(/\s/g,'_') + '_e' + evtIdx;
+  const key = roomId + '_' + dateStr;
+  const selPeriod = selectedPeriods[key];
+  const teamInput = document.getElementById(`booking-team-${roomId}`);
+  const teamName  = teamInput ? teamInput.value.trim() : '';
+
+  const btnChange = document.getElementById(`btn-change-${roomId}`);
+  const btnCancel = document.getElementById(`btn-cancel-${roomId}`);
+  if(!btnChange || !btnCancel) return;
+
+  const hasPeriod = selPeriod != null;
+  const hasTeam   = teamName.length > 0;
+
+  let canChange = false;
+  if(hasPeriod && hasTeam) {
+    const existing = appData.bookings[dateStr]?.[room]?.[selPeriod];
+    canChange = !existing || existing.toUpperCase() !== teamName.toUpperCase();
+  }
+  const canCancel = hasPeriod && hasTeam;
+
+  setBtn(btnChange, canChange);
+  setBtn(btnCancel, canCancel, true);
+}
+
+function setBtn(btn, enabled, isRed=false) {
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '1' : '.4';
+  btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+  if(isRed) btn.style.color = enabled ? 'var(--red)' : '';
+}
+
+function doBooking(dateStr, room, action, tk, evtIdx) {
+  const roomId    = tk + '_' + room.replace(/\s/g,'_') + '_e' + evtIdx;
+  const key       = roomId + '_' + dateStr;
+  const selPeriod = selectedPeriods[key];
+  const teamInput = document.getElementById(`booking-team-${roomId}`);
+  const teamName  = (teamInput ? teamInput.value.trim() : '').toUpperCase();
+
+  if(selPeriod == null) { showToast('교시를 선택하세요.','error'); return; }
+  if(!teamName)         { showToast('예약팀명을 입력하세요.','error'); return; }
+
+  if(!appData.bookings[dateStr]) appData.bookings[dateStr] = {};
+  if(!appData.bookings[dateStr][room]) appData.bookings[dateStr][room] = {};
+
+  const existing = appData.bookings[dateStr][room][selPeriod];
+  const ts = new Date().toLocaleString('ko-KR');
+
+  if(action === 'book') {
+    if(existing) { showToast(`${selPeriod}교시는 이미 ${existing}팀이 예약했습니다.`, 'error'); return; }
+    appData.bookings[dateStr][room][selPeriod] = teamName;
+    addHistory(dateStr, room, selPeriod, teamName, 'booked', ts);
+
+  } else if(action === 'change') {
+    if(existing && existing.toUpperCase() === teamName) {
+      showToast('현재 예약팀과 동일한 팀명입니다.', 'error'); return;
+    }
+    appData.bookings[dateStr][room][selPeriod] = teamName;
+    addHistory(dateStr, room, selPeriod, teamName, 'change', ts);
+
+  } else if(action === 'cancel') {
+    delete appData.bookings[dateStr][room][selPeriod];
+    addHistory(dateStr, room, selPeriod, existing || teamName, 'cancel', ts);
+  }
+
+  save();
+  selectedPeriods[key] = null;
+
+  // Google Sheets 동기화
+  if(APPS_SCRIPT_URL) {
+    const gsAction = action==='book' ? 'book' : action==='change' ? 'changeBook' : 'cancelBook';
+    syncBooking(gsAction, { date:dateStr, room, period:selPeriod, team_key:teamName })
+      .then(r => { if(r && !r.success) showToast(r.error||'GS 동기화 실패','error'); });
+  }
+
+  showToast(`${action==='book'?'예약':action==='change'?'변경':'취소'} 완료`, 'success');
+  openDayBooking(dateStr);
+}
+
+function addHistory(dateStr, room, period, team, action, time) {
+  const k = `${dateStr}_${room}_P${period}`;
+  if(!appData.bookingHistory[k]) appData.bookingHistory[k] = [];
+  appData.bookingHistory[k].unshift({time, team, action, period});
+  if(appData.bookingHistory[k].length > 10)
+    appData.bookingHistory[k] = appData.bookingHistory[k].slice(0, 10);
+}
+
+/* 특정 교시의 내역만 반환 */
+function getHistoryByPeriod(dateStr, room, period) {
+  const k = `${dateStr}_${room}_P${period}`;
+  return (appData.bookingHistory[k] || []).slice(0, 10);
+}
+
+/* 방 전체 내역 (검색 등 호환용) */
+function getHistory(dateStr, room) {
+  const hist = [];
+  Object.entries(appData.bookingHistory).forEach(([k,v]) => {
+    if(k.startsWith(`${dateStr}_${room}_`)) v.forEach(h => hist.push({...h}));
+  });
+  hist.sort((a,b) => new Date(b.time) - new Date(a.time));
+  return hist;
+}
+
+function closeModal() {
+  document.getElementById('booking-modal').classList.add('hidden');
+  selectedPeriods={};
+}
+
+/* ════════════════════════════════
+   SEARCH
+════════════════════════════════ */
+function onSearchUnitChange(){
+  // Nothing special for now
+}
+
+function doSearch(){
+  const unit = document.getElementById('search-unit').value;
+  const date = document.getElementById('search-date').value;
+  const availOnly = document.getElementById('search-avail-only').checked;
+  if(!date){ showToast('날짜를 선택하세요.','error'); return; }
+
+  const d = new Date(date);
+  let dates = [];
+  if(unit==='date'){ dates=[isoDate(d)]; }
+  else if(unit==='week'){
+    const mon=getMonday(d);
+    for(let i=0;i<5;i++){
+      const nd=addDays(mon,i);
+      if(nd.getDay()>=1&&nd.getDay()<=5) dates.push(isoDate(nd));
+    }
+  } else {
+    const y=d.getFullYear(),m=d.getMonth();
+    let cur=new Date(y,m,1);
+    while(cur.getMonth()===m){
+      if(cur.getDay()>=1&&cur.getDay()<=5) dates.push(isoDate(cur));
+      cur=addDays(cur,1);
+    }
+  }
+
+  const results=document.getElementById('search-results');
+  let html='';
+  dates.forEach(ds=>{
+    const allTeams=Object.entries(appData.teams).filter(([,t])=>t.classrooms&&t.classrooms.length>0);
+    if(allTeams.length===0) return;
+    let periodBadges='';
+    allTeams.forEach(([tk,team])=>{
+      team.classrooms.forEach(room=>{
+        if(!room) return;
+        const periods=getPeriodStatus(ds,room,tk);
+        periods.forEach(({p,status})=>{
+          if(availOnly && status!=='avail') return;
+          periodBadges+=`<div class="period-badge ${status}" title="${room} ${p}교시">${p}</div>`;
+        });
+      });
+    });
+    if(availOnly && !periodBadges) return;
+    html+=`<div class="search-result-card">
+      <div class="date-badge">${ds}</div>
+      <div class="period-badges">${periodBadges||'<span style="color:var(--text-light);font-size:13px;">없음</span>'}</div>
+    </div>`;
+  });
+  results.innerHTML=html||'<div style="color:var(--text-secondary);padding:20px;">검색 결과가 없습니다.</div>';
+}
+
+/* ════════════════════════════════
+   ADMIN
+════════════════════════════════ */
+function checkAdmin(){
+  const pw=document.getElementById('admin-pw-input').value;
+  if(pw===ADMIN_PASSWORD){
+    isAdminLoggedIn = true;
+    document.getElementById('admin-login-wrap').style.display='none';
+    document.getElementById('admin-content-wrap').style.display='block';
+    updateSyncBtnVisibility();
+    renderAdmin();
+  } else {
+    showToast('비밀번호가 올바르지 않습니다.','error');
+  }
+}
+
+function renderAdmin(){
+  // URL 인풋 / 상태 배지 갱신 (DOM 렌더 후 즉시)
+  setTimeout(updateSyncStatus, 0);
+
+  // Dept table
+  const tbody=document.getElementById('admin-dept-tbody');
+  tbody.innerHTML=appData.depts.map(d=>`
+    <tr>
+      <td><strong>${d}</strong></td>
+      <td>${Object.keys(appData.teams).filter(k=>k.startsWith(d)).length}</td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="deleteDept('${d}')">삭제</button>
+      </td>
+    </tr>`).join('');
+
+  // Team table
+  const ttbody=document.getElementById('admin-team-tbody');
+  ttbody.innerHTML=Object.entries(appData.teams).map(([k,t])=>`
+    <tr>
+      <td><strong>${k}</strong></td>
+      <td>${appData.depts.find(d=>k.startsWith(d))||k.slice(0,-1)}</td>
+      <td>${(t.classrooms||[]).filter(c=>c).join(', ')||'-'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="openTeam('${k}');switchPanel('dept')">편집</button>
+        <button class="btn btn-outline btn-sm" style="color:var(--red)" onclick="deleteTeamAdmin('${k}')">삭제</button>
+      </td>
+    </tr>`).join('');
+
+  // 과 선택 드롭다운 갱신
+  const deptSel = document.getElementById('new-team-dept');
+  if(deptSel){
+    deptSel.innerHTML = '<option value="">과 선택</option>' +
+      appData.depts.map(d=>`<option value="${d}">${d}</option>`).join('');
+  }
+}
+
+function addDept(){
+  const name=document.getElementById('new-dept-input').value.trim().toUpperCase();
+  if(!name){ showToast('과명을 입력하세요.','error'); return; }
+  if(appData.depts.includes(name)){ showToast('이미 존재하는 과입니다.','error'); return; }
+  appData.depts.push(name);
+  for(let i=1;i<=5;i++){
+    const k=name+i;
+    if(!appData.teams[k]) appData.teams[k]={classrooms:[],schedule:{},extraEvents:[],ampm:{}};
+  }
+  save();
+  renderSidebar();
+  renderAdmin();
+  showToast(`${name} 과가 추가되었습니다.`,'success');
+  // GS 동기화
+  if(APPS_SCRIPT_URL){
+    syncCall('saveDept',{ dept_name: name }).then(()=>{
+      for(let i=1;i<=5;i++) syncCall('saveTeam',{ team_key:name+i, dept:name, classrooms:[] });
+    });
+  }
+}
+
+function deleteDept(d){
+  if(!confirm(`${d} 과를 삭제하시겠습니까?`)) return;
+  appData.depts=appData.depts.filter(x=>x!==d);
+  Object.keys(appData.teams).filter(k=>k.startsWith(d)).forEach(k=>delete appData.teams[k]);
+  save();
+  renderSidebar();
+  renderAdmin();
+  showToast(`${d} 과가 삭제되었습니다.`,'success');
+  // GS 동기화
+  if(APPS_SCRIPT_URL) syncCall('deleteDept',{ dept_name: d });
+}
+
+function addTeam(){
+  const dept = document.getElementById('new-team-dept').value.trim();
+  const num  = document.getElementById('new-team-num').value.trim();
+  if(!dept){ showToast('과를 선택하세요.','error'); return; }
+  if(!num || isNaN(num) || parseInt(num)<1){ showToast('올바른 팀 번호를 입력하세요.','error'); return; }
+  const teamKey = dept + parseInt(num);
+  if(appData.teams[teamKey]){ showToast(`${teamKey} 팀이 이미 존재합니다.`,'error'); return; }
+  appData.teams[teamKey] = { classrooms:[], schedule:{}, extraEvents:[], ampm:{} };
+  save();
+  // GS 동기화
+  if(APPS_SCRIPT_URL){
+    syncCall('saveTeam',{ team_key:teamKey, dept, classrooms:[] }).then(r=>{
+      if(r && r.success) showToast(`${teamKey} 팀이 Sheets에 동기화됐습니다.`,'info');
+    });
+  }
+  renderSidebar();
+  renderAdmin();
+  document.getElementById('new-team-num').value='';
+  showToast(`${teamKey} 팀이 추가됐습니다.`,'success');
+}
+
+function deleteTeamAdmin(teamKey){
+  if(!confirm(`${teamKey} 팀을 삭제하시겠습니까?\n(해당 팀의 일정·예약 내역도 모두 삭제됩니다)`)) return;
+  delete appData.teams[teamKey];
+  // 예약에서도 제거
+  Object.entries(appData.bookings).forEach(([date, rooms])=>{
+    Object.entries(rooms).forEach(([room, periods])=>{
+      Object.entries(periods).forEach(([p, tk])=>{
+        if(tk===teamKey) delete appData.bookings[date][room][p];
+      });
+    });
+  });
+  save();
+  // GS 동기화
+  if(APPS_SCRIPT_URL){
+    syncCall('deleteTeam',{ team_key:teamKey });
+  }
+  renderSidebar();
+  renderAdmin();
+  showToast(`${teamKey} 팀이 삭제됐습니다.`,'success');
+}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function showToast(msg, type='info'){
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=msg;
+  tc.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(()=>t.remove(),400);},2800);
+}
+
+/* ════════════════════════════════
+   HELPERS
+════════════════════════════════ */
+function parseDateStr(str){
+  if(!str) return null;
+  const p=str.split('/');
+  if(p.length<3) return null;
+  const y=parseInt(p[2])+(parseInt(p[2])<50?2000:1900);
+  return new Date(y,parseInt(p[0])-1,parseInt(p[1]));
+}
+
+/* ════════════════════════════════
+   GOOGLE SHEETS 연동
+════════════════════════════════ */
+let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || '';
+
+function updateSyncStatus() {
+  // 캘린더 툴바 상태 배지 (관리자만 버튼 자체가 보임)
+  const el = document.getElementById('sync-status');
+  if(el) {
+    if(APPS_SCRIPT_URL) { el.textContent='연결됨'; el.className='url-status connected'; }
+    else                { el.textContent='미연결'; el.className='url-status disconnected'; }
+  }
+  // 관리자 패널 내부 상태 배지
+  const ael = document.getElementById('admin-sync-status');
+  if(ael) {
+    if(APPS_SCRIPT_URL) { ael.textContent='연결됨'; ael.className='url-status connected'; }
+    else                { ael.textContent='미연결'; ael.className='url-status disconnected'; }
+  }
+  // 관리자 패널 인풋에 현재 URL 반영
+  const ainput = document.getElementById('admin-url-input');
+  if(ainput) ainput.value = APPS_SCRIPT_URL;
+
+  updateSyncBtnVisibility();
+}
+
+function updateSyncBtnVisibility() {
+  const btn = document.getElementById('btn-sync');
+  if(!btn) return;
+  // 관리자 로그인 상태이면 항상 표시
+  // 비로그인 상태: URL이 연결돼 있어도 버튼 숨김 (일반 사용자는 접근 불가)
+  if(isAdminLoggedIn) {
+    btn.style.display = '';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function openUrlModal() {
+  document.getElementById('url-modal-input').value = APPS_SCRIPT_URL;
+  document.getElementById('url-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('url-modal-input').focus(), 80);
+}
+
+function closeUrlModal() {
+  document.getElementById('url-modal').classList.add('hidden');
+}
+
+function clearUrl() {
+  if(!confirm('Google Sheets 연동을 해제하시겠습니까?')) return;
+  localStorage.removeItem('appsScriptUrl');
+  APPS_SCRIPT_URL = '';
+  updateSyncStatus();
+  closeUrlModal();
+  showToast('연동이 해제되었습니다.', 'info');
+}
+
+async function saveUrl() {
+  const input = document.getElementById('url-modal-input').value.trim();
+  if(input && !input.startsWith('https://script.google.com/')) {
+    showToast('올바른 Apps Script URL 형식이 아닙니다.', 'error');
+    return;
+  }
+  localStorage.setItem('appsScriptUrl', input);
+  APPS_SCRIPT_URL = input;
+  updateSyncStatus();
+  closeUrlModal();
+  if(APPS_SCRIPT_URL) {
+    showToast('URL이 저장되었습니다. 동기화 중...', 'success');
+    await syncLoadAll();
+  } else {
+    showToast('URL이 초기화되었습니다.', 'info');
+  }
+}
+
+/* 관리자 패널 내 URL 저장 */
+async function saveAdminUrl() {
+  const input = document.getElementById('admin-url-input').value.trim();
+  if(input && !input.startsWith('https://script.google.com/')) {
+    showToast('올바른 Apps Script URL 형식이 아닙니다.', 'error');
+    return;
+  }
+  localStorage.setItem('appsScriptUrl', input);
+  APPS_SCRIPT_URL = input;
+  updateSyncStatus();
+  if(APPS_SCRIPT_URL) {
+    showToast('URL이 저장되었습니다. 동기화 중...', 'success');
+    await syncLoadAll();
+  } else {
+    showToast('URL이 초기화되었습니다.', 'info');
+  }
+}
+
+/* 관리자 패널 내 연동 해제 */
+function clearAdminUrl() {
+  if(!confirm('Google Sheets 연동을 해제하시겠습니까?')) return;
+  localStorage.removeItem('appsScriptUrl');
+  APPS_SCRIPT_URL = '';
+  updateSyncStatus();
+  showToast('연동이 해제되었습니다.', 'info');
+}
+
+async function syncCall(action, payload={}) {
+  if(!APPS_SCRIPT_URL) return null;
+  try {
+    // Content-Type:application/json은 CORS preflight를 유발하므로
+    // text/plain + no-cors 방식으로 GAS에 전송합니다.
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({action, payload})
+    });
+    return { success: true };
+  } catch(e) {
+    console.warn('Sheets 연동 오류:', e);
+    return null;
+  }
+}
+
+// 응답 데이터가 필요한 loadAll 전용 fetch (CORS 허용 시)
+async function syncCallWithResponse(action, payload={}) {
+  if(!APPS_SCRIPT_URL) return null;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify({action, payload})
+    });
+    return await res.json();
+  } catch(e) {
+    console.warn('Sheets 응답 오류(CORS):', e);
+    return null;
+  }
+}
+
+async function syncLoadAll() {
+  if(!APPS_SCRIPT_URL) {
+    openUrlModal();
+    return;
+  }
+  showToast('Google Sheets에서 데이터 로드 중...','info');
+  const res = await syncCallWithResponse('loadAll');
+  if(res && res.success && res.data) {
+    appData = { ...appData, ...res.data };
+    save();
+    renderSidebar();
+    renderCalendar();
+    showToast('데이터 로드 완료','success');
+  } else {
+    showToast('데이터 로드 실패. URL을 확인하세요.','error');
+  }
+}
+
+async function syncSaveTeam(tk) {
+  const team = appData.teams[tk];
+  const dept = tk.slice(0,-1);
+  await syncCall('saveTeam', { team_key:tk, dept, classrooms:team.classrooms||[] });
+  // Save schedules
+  const sc = team.schedule||{};
+  const keys=['academic_break','immersion2','immersion3','cookery','ooca1','ooca2','ooca3','dlpt'];
+  for(const k of keys){
+    if(sc[k+'_date']) {
+      await syncCall('saveSchedule',{team_key:tk,event_key:k,date_value:sc[k+'_date'],ampm:sc[k+'_ampm']||''});
+    }
+  }
+}
+
+async function syncBooking(action, payload) {
+  const res = await syncCall(action, payload);
+  if(res && !res.success && res.error) showToast(res.error,'error');
+  return res;
+}
+
+/* ════════════════════════════════
+   INIT
+════════════════════════════════ */
+function init(){
+  renderSidebar();
+  renderCalendar();
+  updateSyncStatus();
+
+  // Today's date as default for search
+  const td=isoDate(new Date());
+  document.getElementById('search-date').value=td;
+
+  // Close modals on overlay click
+  document.getElementById('booking-modal').addEventListener('click',function(e){
+    if(e.target===this) closeModal();
+  });
+  document.getElementById('url-modal').addEventListener('click',function(e){
+    if(e.target===this) closeUrlModal();
+  });
+
+  // 앱 시작 시 GAS URL이 있으면 자동으로 최신 데이터 로드
+  // → 모바일/다른 기기에서도 항상 최신 데이터 표시
+  if(APPS_SCRIPT_URL) {
+    syncLoadAll();
+  } else {
+    // URL 미설정 시: 상단에 안내 배너 표시
+    showSyncBanner();
+  }
+}
+
+function showSyncBanner() {
+  // 이미 배너가 있으면 중복 생성 방지
+  if(document.getElementById('sync-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'sync-banner';
+  banner.style.cssText = [
+    'position:fixed','top:0','left:0','right:0','z-index:500',
+    'background:#f39c12','color:#fff','padding:10px 16px',
+    'font-size:13px','font-weight:600','display:flex',
+    'align-items:center','justify-content:space-between','gap:8px',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.15)'
+  ].join(';');
+  banner.innerHTML = `
+    <span>⚠️ Google Sheets 미연결 — 이 기기에서 입력한 데이터는 다른 기기에서 보이지 않습니다.</span>
+    <button onclick="switchPanel('admin');document.getElementById('sync-banner').remove()"
+      style="background:#fff;color:#f39c12;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">
+      연결 설정
+    </button>
+  `;
+  document.body.appendChild(banner);
+  // 배너 높이만큼 main 영역 padding 추가
+  setTimeout(()=>{
+    const h = banner.offsetHeight;
+    document.getElementById('main').style.paddingTop = h + 'px';
+    const hb = document.getElementById('hamburger');
+    if(hb) hb.style.top = (10 + h) + 'px';
+  }, 50);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
