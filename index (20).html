@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>교실 예약 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-bg: #1a2340;
+  --sidebar-text: #e8edf8;
+  --sidebar-accent: #4a90d9;
+  --sidebar-hover: #2a3a60;
+  --sidebar-active: #3a5a99;
+  --main-bg: #f0f4fb;
+  --card-bg: #ffffff;
+  --text-primary: #1a2340;
+  --text-secondary: #5a6a8a;
+  --border: #dde4f0;
+  --font-main: 'Noto Sans KR', 'Nunito', sans-serif;
+  --fs-base: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 21.6px;
+  --fs-sm: 13.5px;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(26,35,64,0.10);
+
+  /* Event Colors */
+  --col-academic-break: #e05a2b;
+  --col-immersion2: #7b3fbf;
+  --col-immersion3: #1a7a4a;
+  --col-cookery: #c4910a;
+  --col-ooca1: #1769aa;
+  --col-ooca2: #a31c6e;
+  --col-ooca3: #2e7d6f;
+  --col-dlpt: #6b4c00;
+  --col-extra: #3d6b00;
+  --col-holiday: #888;
+
+  /* Pastel area colors */
+  --area-calendar: #e8f4fd;
+  --area-team: #f0eafd;
+  --area-search: #e8fdf0;
+  --area-admin: #fff8e8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-main);
+  font-size: var(--fs-base);
+  background: var(--main-bg);
+  color: var(--text-primary);
+}
+
+/* ===== LAYOUT ===== */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  z-index: 10;
+  transition: width 0.3s;
+}
+
+.sidebar-logo {
+  padding: 22px 18px 14px;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  line-height: 1.3;
+}
+.sidebar-logo span { color: var(--sidebar-accent); }
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  color: var(--sidebar-text);
+  border-radius: 0;
+  transition: background 0.18s, color 0.18s;
+  user-select: none;
+  border-left: 4px solid transparent;
+}
+.nav-item:hover { background: var(--sidebar-hover); }
+.nav-item.active {
+  background: var(--sidebar-active);
+  border-left: 4px solid var(--sidebar-accent);
+  color: #fff;
+}
+.nav-item .icon { font-size: 20px; }
+
+.nav-sub {
+  padding-left: 0;
+  overflow: hidden;
+}
+.nav-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px 9px 44px;
+  cursor: pointer;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: rgba(232,237,248,0.75);
+  transition: background 0.15s, color 0.15s;
+  border-left: 4px solid transparent;
+}
+.nav-sub-item:hover { background: var(--sidebar-hover); color: #fff; }
+.nav-sub-item.active { background: rgba(74,144,217,0.18); color: #fff; border-left: 4px solid var(--sidebar-accent); }
+
+.nav-dept { font-size: 13px; color: rgba(232,237,248,0.45); padding: 8px 20px 2px; text-transform: uppercase; letter-spacing: 1px; }
+
+.sidebar-bottom {
+  padding: 10px 0 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--main-bg);
+}
+
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  flex-shrink: 0;
+}
+
+.gas-setup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.gas-setup label { font-weight: 700; font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
+.gas-setup input {
+  flex: 1; min-width: 200px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-main);
+  color: var(--text-primary);
+  outline: none;
+  transition: border 0.2s;
+}
+.gas-setup input:focus { border-color: var(--sidebar-accent); }
+.gas-setup .btn-connect {
+  background: var(--sidebar-accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.gas-setup .btn-connect:hover { background: #2a6cb5; }
+.gas-url-status { font-size: 13px; font-weight: 600; color: #1a7a4a; }
+
+.topbar-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  padding: 18px 22px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== PANELS ===== */
+.panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.panel.active { display: flex; }
+
+/* ===== CALENDAR PANEL ===== */
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-bottom: 10px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: calc(var(--fs-base) * 1.3);
+  font-weight: 600;
+}
+.legend-dot {
+  width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0;
+}
+
+.btn {
+  padding: 7px 15px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: var(--fs-base);
+  font-weight: 700;
+  font-family: var(--font-main);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--main-bg); border-color: var(--sidebar-accent); }
+.btn.active, .btn-primary {
+  background: var(--sidebar-accent);
+  color: #fff;
+  border-color: var(--sidebar-accent);
+}
+.btn.active:hover, .btn-primary:hover { background: #2a6cb5; }
+.btn-today { background: #1a7a4a; color: #fff; border-color: #1a7a4a; }
+.btn-today:hover { background: #155c38; }
+.btn-nav { padding: 7px 13px; font-size: 18px; }
+
+.cal-title {
+  font-size: var(--fs-xl);
+  font-weight: 900;
+  color: var(--text-primary);
+  flex: 1;
+  text-align: center;
+}
+
+.calendar-wrap {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.cal-days-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--sidebar-bg);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.cal-day-name {
+  text-align: center;
+  padding: 10px 0;
+  font-size: calc(var(--fs-base) * 1.3);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.cal-grid {
+  flex: 1;
+  overflow: hidden;
+  display: grid;
+}
+.cal-grid.month-view { grid-template-rows: repeat(auto-fill, minmax(0, 1fr)); }
+.cal-week-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.cal-week-row:last-child { border-bottom: none; }
+
+.cal-cell {
+  padding: 5px 6px;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  position: relative;
+}
+.cal-cell:last-child { border-right: none; }
+.cal-cell:hover { background: #f5f8ff; }
+.cal-cell.today { background: #e8f4fd; }
+.cal-cell.other-month { opacity: 0.4; pointer-events: none; }
+
+.cal-date {
+  font-size: calc(var(--fs-base) * 1.3);
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+  line-height: 1.4;
+}
+.cal-cell.today .cal-date {
+  background: var(--sidebar-accent);
+  color: #fff;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+
+.cal-event {
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: #fff;
+}
+.cal-event.light-bg { color: #1a2340; }
+
+/* Week view */
+.week-view-wrap {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.week-time-col {
+  width: 52px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  padding-top: 48px;
+  overflow: hidden;
+}
+.week-time-slot {
+  height: 48px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+  padding-right: 8px;
+  line-height: 1;
+  display: flex; align-items: flex-start;
+}
+.week-days-wrap {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  overflow: hidden;
+}
+.week-day-col {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.week-day-col:last-child { border-right: none; }
+.week-day-header {
+  height: 48px;
+  text-align: center;
+  padding: 6px;
+  font-size: calc(var(--fs-base) * 1.3);
+  font-weight: 900;
+  border-bottom: 1px solid var(--border);
+  background: var(--sidebar-bg);
+  color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.week-day-body {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.week-hour-slot {
+  height: 48px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.week-event-block {
+  position: absolute;
+  left: 2px; right: 2px;
+  border-radius: 5px;
+  padding: 2px 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* ===== TEAM PANEL ===== */
+.team-page { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.team-page-header {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 14px 20px;
+  margin-bottom: 12px;
+}
+.team-name-big { font-size: var(--fs-xl); font-weight: 900; color: var(--text-primary); }
+
+.rooms-row {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px;
+}
+.room-input {
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: var(--font-main);
+  width: 100px;
+  outline: none;
+  transition: border 0.2s;
+}
+.room-input:focus { border-color: var(--sidebar-accent); }
+.btn-add-room { padding: 6px 14px; font-size: 20px; font-weight: 900; }
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.schedule-group {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+}
+.schedule-group-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.schedule-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  min-width: 120px;
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+.schedule-date-input {
+  padding: 5px 9px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: var(--font-main);
+  width: 110px;
+  outline: none;
+  transition: border 0.2s;
+}
+.schedule-date-input:focus { border-color: var(--sidebar-accent); }
+.schedule-info { font-size: 12.5px; color: var(--text-secondary); }
+
+.ampm-btns { display: flex; gap: 4px; }
+.ampm-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ampm-btn.active-am { background: #e8f4fd; border-color: var(--sidebar-accent); color: var(--sidebar-accent); }
+.ampm-btn.active-pm { background: #fdeee8; border-color: var(--col-academic-break); color: var(--col-academic-break); }
+
+.extra-events { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 12px; }
+.extra-events-title { font-size: 14px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.extra-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.extra-add-row input { padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 14px; font-family: var(--font-main); outline: none; transition: border 0.2s; }
+.extra-add-row input:focus { border-color: var(--sidebar-accent); }
+.extra-list-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14.5px; }
+.extra-list-item:last-child { border-bottom: none; }
+
+.btn-save-all {
+  background: #1a7a4a; color: #fff; border: none;
+  border-radius: 10px; padding: 12px 32px;
+  font-size: var(--fs-lg); font-weight: 800;
+  cursor: pointer; transition: background 0.2s;
+  width: 100%; margin-top: 4px;
+}
+.btn-save-all:hover { background: #155c38; }
+
+/* ===== SEARCH PANEL ===== */
+.search-panel-inner {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+.search-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 18px; }
+.search-results-list { display: flex; flex-direction: column; gap: 8px; }
+.search-result-item {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+}
+.search-result-item .avail { color: #1a7a4a; font-weight: 700; }
+.search-result-item .taken { color: #c0392b; font-weight: 700; }
+
+/* ===== ADMIN PANEL ===== */
+.admin-panel-inner {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+.admin-section { margin-bottom: 20px; }
+.admin-section-title { font-size: var(--fs-lg); font-weight: 800; margin-bottom: 10px; color: var(--text-primary); }
+.admin-list { display: flex; flex-direction: column; gap: 6px; }
+.admin-list-row { display: flex; gap: 8px; align-items: center; }
+.admin-list-row input { flex: 1; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 14px; font-family: var(--font-main); outline: none; }
+.admin-list-row input:focus { border-color: var(--sidebar-accent); }
+.btn-danger { background: #c0392b; color: #fff; border-color: #c0392b; }
+.btn-danger:hover { background: #962d22; }
+.btn-success { background: #1a7a4a; color: #fff; border-color: #1a7a4a; }
+.btn-success:hover { background: #155c38; }
+
+/* ===== PASSWORD GATE ===== */
+.pw-gate {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; gap: 12px;
+}
+.pw-gate input {
+  padding: 10px 18px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  font-size: var(--fs-lg);
+  font-family: var(--font-main);
+  outline: none;
+  width: 240px;
+  text-align: center;
+  letter-spacing: 3px;
+}
+.pw-gate input:focus { border-color: var(--sidebar-accent); }
+.pw-gate .pw-hint { font-size: 13px; color: var(--text-secondary); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(26,35,64,0.45);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px 24px 20px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(26,35,64,0.2);
+  position: relative;
+}
+.modal-close {
+  position: absolute; top: 14px; right: 16px;
+  font-size: 22px; cursor: pointer; color: var(--text-secondary);
+  background: none; border: none; font-weight: 900;
+  line-height: 1;
+}
+.modal-title { font-size: var(--fs-xl); font-weight: 900; margin-bottom: 16px; }
+.modal-date { font-size: 15px; color: var(--text-secondary); margin-bottom: 14px; }
+
+.room-block { margin-bottom: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.room-block-title { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+.period-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.period-btn {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #1a7a4a;
+  color: #fff;
+}
+.period-btn.booked { background: #c0392b; }
+.period-btn.unavail { background: #ccc; color: #888; cursor: not-allowed; }
+.period-btn.selected { border-color: var(--sidebar-accent); box-shadow: 0 0 0 2px rgba(74,144,217,0.3); }
+
+.booking-action-row {
+  display: flex; gap: 8px; align-items: center; margin-top: 8px;
+}
+.booking-team-input {
+  padding: 6px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 15px;
+  font-family: var(--font-main);
+  width: 100px;
+  text-transform: uppercase;
+  outline: none;
+}
+.booking-team-input:focus { border-color: var(--sidebar-accent); }
+.booking-team-input::placeholder { color: #bbb; text-transform: none; font-size: 13px; }
+
+.booking-log {
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.booking-log-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+.booking-log-item { font-size: 13px; color: var(--text-primary); padding: 3px 0; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--sidebar-bg); color: #fff;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #1a7a4a; }
+.toast.error { background: #c0392b; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .sidebar { width: 56px; min-width: 56px; }
+  .sidebar-logo, .nav-dept, .nav-item span:not(.icon), .nav-sub-item span:not(.icon) { display: none; }
+  .nav-item, .nav-sub-item { padding: 12px; justify-content: center; }
+  .nav-sub-item { padding: 10px; }
+  .content { padding: 10px 8px 6px; }
+  .schedule-grid { grid-template-columns: 1fr; }
+  .cal-legend { gap: 6px 10px; }
+}
+@media (max-width: 480px) {
+  .gas-setup input { min-width: 120px; }
+  .cal-event { font-size: 10px; }
+  .modal { padding: 16px 12px; }
+}
+
+.team-content-scroll {
+  flex: 1; overflow-y: auto;
+}
+
+/* area colors */
+.panel#calendarPanel { background: var(--area-calendar); }
+.panel#teamPanel { background: var(--area-team); }
+.panel#searchPanel { background: var(--area-search); }
+.panel#adminPanel { background: var(--area-admin); }
+
+.select-team-msg {
+  color: var(--text-secondary); font-size: var(--fs-lg);
+  text-align: center; margin-top: 48px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏫 <span>교실</span>예약</div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-item active" data-panel="calendarPanel" onclick="switchPanel('calendarPanel', this)">
+        <span class="icon">📅</span><span>캘린더</span>
+      </div>
+      <div class="nav-item" data-panel="teamPanel" onclick="toggleDeptMenu(this)">
+        <span class="icon">🏢</span><span>과·팀</span>
+      </div>
+      <div class="nav-sub" id="deptSub" style="display:none" id="deptSub"></div>
+      <div class="nav-item" data-panel="searchPanel" onclick="switchPanel('searchPanel', this)">
+        <span class="icon">🔍</span><span>검색</span>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="nav-item" data-panel="adminPanel" onclick="switchPanel('adminPanel', this)" style="opacity:0.55;font-size:14px;">
+          <span class="icon">⚙️</span><span>관리</span>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR with GAS setup -->
+    <div class="topbar" id="topbar">
+      <div class="gas-setup" id="gasSetup">
+        <label>🔗 GAS URL</label>
+        <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..." />
+        <button class="btn-connect" onclick="connectGAS()">연결</button>
+        <span class="gas-url-status" id="gasStatus" style="display:none">✅ 연결됨</span>
+      </div>
+    </div>
+
+    <!-- CALENDAR PANEL -->
+    <div class="panel active" id="calendarPanel">
+      <div class="content">
+        <!-- Legend -->
+        <div class="cal-legend" id="calLegend"></div>
+        <!-- Header -->
+        <div class="cal-header">
+          <button class="btn btn-today" onclick="goToday()">TODAY</button>
+          <button class="btn btn-nav" onclick="calNav(-1)">&#8592;</button>
+          <div class="cal-title" id="calTitle"></div>
+          <button class="btn btn-nav" onclick="calNav(1)">&#8594;</button>
+          <button class="btn" id="btnMonth" onclick="setView('month')" style="background:var(--sidebar-accent);color:#fff">Month</button>
+          <button class="btn" id="btnWeek" onclick="setView('week')">Week</button>
+        </div>
+        <!-- Calendar Grid -->
+        <div class="calendar-wrap" id="calendarWrap"></div>
+      </div>
+    </div>
+
+    <!-- TEAM PANEL -->
+    <div class="panel" id="teamPanel">
+      <div class="content" style="overflow:hidden;display:flex;flex-direction:column;">
+        <div id="teamContent">
+          <p class="select-team-msg">← 왼쪽에서 팀을 선택하세요</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEARCH PANEL -->
+    <div class="panel" id="searchPanel">
+      <div class="content">
+        <div class="search-panel-inner">
+          <h2 style="font-size:var(--fs-xl);font-weight:900;margin-bottom:16px;">🔍 예약 검색</h2>
+          <div class="search-controls">
+            <select class="btn" id="searchType" onchange="runSearch()">
+              <option value="day">날짜</option>
+              <option value="week">주</option>
+              <option value="month">달</option>
+            </select>
+            <input type="date" class="schedule-date-input" id="searchDate" onchange="runSearch()" style="width:160px" />
+            <label style="font-size:14px;font-weight:700;color:var(--text-secondary)">
+              <input type="checkbox" id="showAvailOnly" onchange="runSearch()" /> 예약가능만 표시
+            </label>
+          </div>
+          <div class="search-results-list" id="searchResults">
+            <p style="color:var(--text-secondary);font-size:15px;">날짜를 선택하면 결과가 표시됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div class="panel" id="adminPanel">
+      <div class="content">
+        <div id="adminGate">
+          <div class="pw-gate">
+            <h2 style="font-size:var(--fs-xl);font-weight:900;">🔐 관리자 로그인</h2>
+            <input type="password" id="adminPwInput" placeholder="비밀번호" onkeydown="if(event.key==='Enter')checkAdminPw()" />
+            <button class="btn btn-primary" onclick="checkAdminPw()">입력</button>
+            <span class="pw-hint">기본 비밀번호: admin123</span>
+          </div>
+        </div>
+        <div id="adminContent" style="display:none;" class="admin-panel-inner">
+          <h2 style="font-size:var(--fs-xl);font-weight:900;margin-bottom:18px;">⚙️ 관리</h2>
+          <div class="admin-section">
+            <div class="admin-section-title">과(Department) 관리</div>
+            <div class="admin-list" id="adminDeptList"></div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input id="newDeptInput" class="schedule-date-input" placeholder="과 코드 (예: KG)" style="width:130px" />
+              <button class="btn btn-success" onclick="addDept()">+ 추가</button>
+            </div>
+          </div>
+          <div class="admin-section">
+            <div class="admin-section-title">팀 관리</div>
+            <div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary)">아래 팀 목록은 자동 생성됩니다. 필요시 개별 삭제 가능.</div>
+            <div class="admin-list" id="adminTeamList"></div>
+          </div>
+          <div class="admin-section">
+            <div class="admin-section-title">데이터 초기화</div>
+            <button class="btn btn-danger" onclick="if(confirm('모든 데이터를 초기화하시겠습니까?'))resetData()">🗑️ 전체 초기화</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal" style="display:none" onclick="closeBookingModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeBookingModal()">✕</button>
+    <div class="modal-title" id="modalTitle">교실 예약</div>
+    <div class="modal-date" id="modalDateInfo"></div>
+    <div id="modalRooms"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================================================
+// STATE
+// ===================================================
+let GAS_URL = localStorage.getItem('gasUrl') || '';
+let currentView = 'month';
+let currentDate = new Date();
+let selectedDept = null;
+let selectedTeam = null;
+let adminUnlocked = false;
+
+// App data
+let data = {
+  depts: ['KA','KB','KC','KD','KE','KF'],
+  teams: {}, // KA: {KA1:{rooms:[],schedule:{},extras:[]}, ...}
+  bookings: {}, // 'KA1_2025-05-20_Room101_3': {team,log:[]}
+  events: [] // extra events from teams
+};
+
+// Load from localStorage
+function loadLocal() {
+  try {
+    const d = localStorage.getItem('classroomData');
+    if (d) data = JSON.parse(d);
+    // ensure all depts have teams
+    data.depts.forEach(dept => {
+      if (!data.teams[dept]) data.teams[dept] = {};
+      for (let i=1;i<=5;i++) {
+        const key = dept+i;
+        if (!data.teams[dept][key]) {
+          data.teams[dept][key] = { rooms: ['', '', ''], schedule: {}, extras: [] };
+        }
+      }
+    });
+  } catch(e) {}
+}
+function saveLocal() {
+  localStorage.setItem('classroomData', JSON.stringify(data));
+}
+
+// ===================================================
+// GAS CONNECTION
+// ===================================================
+function connectGAS() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  if (!url.startsWith('https://script.google.com')) {
+    showToast('올바른 GAS URL을 입력하세요.', 'error');
+    return;
+  }
+  GAS_URL = url;
+  localStorage.setItem('gasUrl', GAS_URL);
+  document.getElementById('gasSetup').style.display = 'none';
+  document.getElementById('gasStatus').style.display = '';
+  document.getElementById('topbar').style.minHeight = '0';
+  showToast('Google Sheets와 연결되었습니다!', 'success');
+  syncFromGAS();
+}
+
+async function syncFromGAS() {
+  if (!GAS_URL) return;
+  try {
+    const res = await fetch(GAS_URL + '?action=getData');
+    const json = await res.json();
+    if (json && json.data) {
+      data = json.data;
+      saveLocal();
+      renderCalendar();
+      renderDeptSub();
+    }
+  } catch(e) {}
+}
+
+async function pushToGAS(payload) {
+  if (!GAS_URL) return;
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {}
+}
+
+// ===================================================
+// PANEL SWITCHING
+// ===================================================
+function switchPanel(panelId, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function toggleDeptMenu(el) {
+  const sub = document.getElementById('deptSub');
+  const isOpen = sub.style.display === 'block';
+  sub.style.display = isOpen ? 'none' : 'block';
+  el.classList.toggle('active', !isOpen);
+  switchPanel('teamPanel', null);
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function renderDeptSub() {
+  const sub = document.getElementById('deptSub');
+  sub.innerHTML = '';
+  data.depts.forEach(dept => {
+    const deptEl = document.createElement('div');
+    deptEl.className = 'nav-sub-item';
+    deptEl.innerHTML = `<span class="icon">🏛️</span><span>${dept}</span>`;
+    deptEl.onclick = (e) => { e.stopPropagation(); toggleTeamSub(dept, deptEl); };
+    sub.appendChild(deptEl);
+
+    const teamSub = document.createElement('div');
+    teamSub.className = 'nav-sub';
+    teamSub.id = 'teamSub_'+dept;
+    teamSub.style.display = 'none';
+    for (let i=1;i<=5;i++) {
+      const teamKey = dept+i;
+      const tEl = document.createElement('div');
+      tEl.className = 'nav-sub-item';
+      tEl.style.paddingLeft = '62px';
+      tEl.innerHTML = `<span>${teamKey}</span>`;
+      tEl.onclick = (e) => { e.stopPropagation(); openTeam(dept, teamKey); };
+      teamSub.appendChild(tEl);
+    }
+    sub.appendChild(teamSub);
+  });
+}
+
+function toggleTeamSub(dept, el) {
+  const sub = document.getElementById('teamSub_'+dept);
+  if (!sub) return;
+  const isOpen = sub.style.display === 'block';
+  // Close all
+  document.querySelectorAll('[id^=teamSub_]').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('#deptSub .nav-sub-item').forEach(s => s.classList.remove('active'));
+  if (!isOpen) { sub.style.display = 'block'; el.classList.add('active'); }
+}
+
+function openTeam(dept, teamKey) {
+  selectedDept = dept;
+  selectedTeam = teamKey;
+  document.querySelectorAll('#deptSub .nav-sub-item').forEach(s => s.classList.remove('active'));
+  renderTeamPage(dept, teamKey);
+}
+
+// ===================================================
+// TEAM PAGE
+// ===================================================
+function renderTeamPage(dept, teamKey) {
+  if (!data.teams[dept] || !data.teams[dept][teamKey]) {
+    data.teams[dept] = data.teams[dept] || {};
+    data.teams[dept][teamKey] = { rooms: ['','',''], schedule: {}, extras: [] };
+  }
+  const team = data.teams[dept][teamKey];
+  const schedule = team.schedule;
+  const extras = team.extras || [];
+
+  const content = document.getElementById('teamContent');
+  content.innerHTML = `
+    <div class="team-page">
+      <div class="team-page-header">
+        <div class="team-name-big">🏫 ${teamKey} 팀</div>
+        <div class="rooms-row" id="roomsRow_${teamKey}">
+          ${(team.rooms||['','','']).map((r,i)=>`<input class="room-input" placeholder="교실 ${i+1}" value="${r}" oninput="updateRoom(${i}, this.value, '${teamKey}', '${dept}')" />`).join('')}
+          <button class="btn btn-add-room" onclick="addRoom('${teamKey}', '${dept}')" ${(team.rooms||[]).length>=5?'disabled':''}>+</button>
+        </div>
+      </div>
+
+      <div class="team-content-scroll">
+        <div class="schedule-grid">
+          <!-- LEFT -->
+          <div class="schedule-group">
+            <div class="schedule-group-title">📌 학사 일정 (좌)</div>
+            ${renderScheduleRow('academic_break','Academic Break','입력일~금(5일)','','no_ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('immersion2','2학기 Immersion','2일','','no_ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('immersion3','3학기 Immersion','2일','','no_ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('cookery','Cookery','1일','','no_ampm', teamKey, dept, schedule)}
+          </div>
+          <!-- RIGHT -->
+          <div class="schedule-group">
+            <div class="schedule-group-title">📌 학사 일정 (우)</div>
+            ${renderScheduleRow('ooca1','1학기 OOCA','','ampm', 'ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('ooca2','2학기 OOCA','','ampm', 'ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('ooca3','3학기 OOCA','','ampm', 'ampm', teamKey, dept, schedule)}
+            ${renderScheduleRow('dlpt','DLPT','목~다음주수','','no_ampm', teamKey, dept, schedule)}
+          </div>
+        </div>
+
+        <div class="extra-events">
+          <div class="extra-events-title">➕ 추가 행사 (최대 10개)</div>
+          <div id="extraList_${teamKey}">
+            ${extras.map((ex,i)=>renderExtraItem(ex,i,teamKey,dept)).join('')}
+          </div>
+          <div class="extra-add-row" id="extraAddRow_${teamKey}">
+            <input id="extraName_${teamKey}" placeholder="행사명" style="width:130px" oninput="autoFormatDate(event,'')">
+            <input id="extraDate_${teamKey}" placeholder="MM/DD/YY" style="width:105px" oninput="autoFormatDateInput(this)">
+            <button class="ampm-btn" id="extraAM_${teamKey}" onclick="toggleExtraAMPM('AM','${teamKey}')">AM</button>
+            <button class="ampm-btn" id="extraPM_${teamKey}" onclick="toggleExtraAMPM('PM','${teamKey}')">PM</button>
+            <button class="btn btn-success" onclick="addExtra('${teamKey}','${dept}')">저장</button>
+          </div>
+        </div>
+
+        <button class="btn-save-all" onclick="saveTeamAll('${dept}','${teamKey}')">💾 전체 저장</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderScheduleRow(key, label, info, type, ampmType, teamKey, dept, schedule) {
+  const s = schedule[key] || {};
+  const dateVal = s.date || '';
+  const ampm = s.ampm || '';
+  const hasAMPM = ampmType === 'ampm';
+
+  return `
+    <div class="schedule-row">
+      <span class="schedule-label">${label}</span>
+      <input class="schedule-date-input" placeholder="MM/DD/YY" value="${dateVal}"
+        oninput="autoFormatDateInput(this);updateSchedule('${key}','date',this.value,'${teamKey}','${dept}')" style="width:105px" />
+      ${hasAMPM ? `
+        <div class="ampm-btns">
+          <button class="ampm-btn ${ampm==='AM'?'active-am':''}" id="am_${key}_${teamKey}"
+            onclick="toggleAMPM('AM','${key}','${teamKey}','${dept}')">AM</button>
+          <button class="ampm-btn ${ampm==='PM'?'active-pm':''}" id="pm_${key}_${teamKey}"
+            onclick="toggleAMPM('PM','${key}','${teamKey}','${dept}')">PM</button>
+        </div>` : `<span class="schedule-info" style="font-size:12px;color:var(--text-secondary)">${info}</span>`}
+    </div>
+  `;
+}
+
+function renderExtraItem(ex, i, teamKey, dept) {
+  return `
+    <div class="extra-list-item">
+      <span style="font-weight:700;min-width:100px">${ex.name}</span>
+      <span style="color:var(--text-secondary)">${ex.date}</span>
+      ${ex.ampm ? `<span style="background:#e8f4fd;padding:2px 8px;border-radius:5px;font-size:13px;font-weight:700">${ex.ampm}</span>` : ''}
+      <button class="btn btn-danger" style="padding:3px 10px;font-size:12px" onclick="removeExtra(${i},'${teamKey}','${dept}')">삭제</button>
+    </div>
+  `;
+}
+
+let extraAMPMState = {};
+function toggleExtraAMPM(ampm, teamKey) {
+  extraAMPMState[teamKey] = extraAMPMState[teamKey] === ampm ? '' : ampm;
+  document.getElementById('extraAM_'+teamKey).className = 'ampm-btn' + (extraAMPMState[teamKey]==='AM'?' active-am':'');
+  document.getElementById('extraPM_'+teamKey).className = 'ampm-btn' + (extraAMPMState[teamKey]==='PM'?' active-pm':'');
+}
+
+function addExtra(teamKey, dept) {
+  const name = document.getElementById('extraName_'+teamKey).value.trim();
+  const date = document.getElementById('extraDate_'+teamKey).value.trim();
+  if (!name || !date) { showToast('행사명과 날짜를 입력하세요.', 'error'); return; }
+  const team = data.teams[dept][teamKey];
+  if (!team.extras) team.extras = [];
+  if (team.extras.length >= 10) { showToast('최대 10개까지 추가 가능합니다.', 'error'); return; }
+  team.extras.push({ name, date, ampm: extraAMPMState[teamKey] || '' });
+  saveLocal();
+  renderTeamPage(dept, teamKey);
+  renderCalendar();
+}
+
+function removeExtra(i, teamKey, dept) {
+  data.teams[dept][teamKey].extras.splice(i, 1);
+  saveLocal();
+  renderTeamPage(dept, teamKey);
+  renderCalendar();
+}
+
+function updateRoom(i, val, teamKey, dept) {
+  if (!data.teams[dept][teamKey].rooms) data.teams[dept][teamKey].rooms = ['','',''];
+  data.teams[dept][teamKey].rooms[i] = val;
+}
+
+function addRoom(teamKey, dept) {
+  const rooms = data.teams[dept][teamKey].rooms || [];
+  if (rooms.length >= 5) return;
+  rooms.push('');
+  data.teams[dept][teamKey].rooms = rooms;
+  saveLocal();
+  renderTeamPage(dept, teamKey);
+}
+
+function updateSchedule(key, field, val, teamKey, dept) {
+  if (!data.teams[dept][teamKey].schedule) data.teams[dept][teamKey].schedule = {};
+  if (!data.teams[dept][teamKey].schedule[key]) data.teams[dept][teamKey].schedule[key] = {};
+  data.teams[dept][teamKey].schedule[key][field] = val;
+}
+
+function toggleAMPM(ampm, key, teamKey, dept) {
+  const s = data.teams[dept][teamKey].schedule;
+  if (!s[key]) s[key] = {};
+  s[key].ampm = s[key].ampm === ampm ? '' : ampm;
+  document.getElementById('am_'+key+'_'+teamKey).className = 'ampm-btn' + (s[key].ampm==='AM'?' active-am':'');
+  document.getElementById('pm_'+key+'_'+teamKey).className = 'ampm-btn' + (s[key].ampm==='PM'?' active-pm':'');
+}
+
+function saveTeamAll(dept, teamKey) {
+  saveLocal();
+  pushToGAS({ action: 'saveTeam', dept, teamKey, teamData: data.teams[dept][teamKey] });
+  renderCalendar();
+  showToast(`${teamKey} 팀 정보 저장 완료!`, 'success');
+}
+
+function autoFormatDateInput(input) {
+  let v = input.value.replace(/\D/g,'');
+  if (v.length >= 6) {
+    v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4,6);
+  } else if (v.length >= 4) {
+    v = v.slice(0,2) + '/' + v.slice(2,4) + (v.length > 4 ? '/'+v.slice(4) : '');
+  } else if (v.length >= 2) {
+    v = v.slice(0,2) + (v.length > 2 ? '/'+v.slice(2) : '');
+  }
+  input.value = v;
+}
+
+// ===================================================
+// CALENDAR
+// ===================================================
+const HOLIDAYS = {
+  '01/01': "New Year's Day",
+  '01/20': 'MLK Day',
+  '02/17': "Presidents' Day",
+  '05/26': 'Memorial Day',
+  '06/19': 'Juneteenth',
+  '07/04': 'Independence Day',
+  '09/01': 'Labor Day',
+  '10/13': 'Columbus Day',
+  '11/11': 'Veterans Day',
+  '11/27': 'Thanksgiving',
+  '12/25': 'Christmas',
+};
+
+// We'll compute floating holidays per year dynamically for some
+function getNthWeekday(year, month, weekday, n) {
+  // weekday: 0=Sun, 1=Mon ... n=1 = first
+  let d = new Date(year, month, 1);
+  let count = 0;
+  while (d.getMonth() === month) {
+    if (d.getDay() === weekday) { count++; if (count===n) return d.getDate(); }
+    d.setDate(d.getDate()+1);
+  }
+  return null;
+}
+function getLastWeekday(year, month, weekday) {
+  let d = new Date(year, month+1, 0);
+  while (d.getDay() !== weekday) d.setDate(d.getDate()-1);
+  return d.getDate();
+}
+
+function getFloatingHolidays(year) {
+  const h = {};
+  // MLK: 3rd Mon Jan
+  const mlk = getNthWeekday(year,0,1,3);
+  if (mlk) h[`01/${String(mlk).padStart(2,'0')}`] = "MLK Day";
+  // Presidents: 3rd Mon Feb
+  const pres = getNthWeekday(year,1,1,3);
+  if (pres) h[`02/${String(pres).padStart(2,'0')}`] = "Presidents' Day";
+  // Memorial: last Mon May
+  const mem = getLastWeekday(year,4,1);
+  if (mem) h[`05/${String(mem).padStart(2,'0')}`] = "Memorial Day";
+  // Labor: 1st Mon Sep
+  const lab = getNthWeekday(year,8,1,1);
+  if (lab) h[`09/${String(lab).padStart(2,'0')}`] = "Labor Day";
+  // Columbus: 2nd Mon Oct
+  const col = getNthWeekday(year,9,1,2);
+  if (col) h[`10/${String(col).padStart(2,'0')}`] = "Columbus Day";
+  // Thanksgiving: 4th Thu Nov
+  const thx = getNthWeekday(year,10,4,4);
+  if (thx) h[`11/${String(thx).padStart(2,'0')}`] = "Thanksgiving";
+  return h;
+}
+
+function getHolidayName(date) {
+  const mm = String(date.getMonth()+1).padStart(2,'0');
+  const dd = String(date.getDate()).padStart(2,'0');
+  const key = `${mm}/${dd}`;
+  const floating = getFloatingHolidays(date.getFullYear());
+  if (floating[key]) return floating[key];
+  if (['01/01','06/19','07/04','11/11','12/25'].includes(key)) {
+    return {'01/01':"New Year's Day",'06/19':'Juneteenth','07/04':'Independence Day','11/11':'Veterans Day','12/25':'Christmas'}[key];
+  }
+  return null;
+}
+
+const LEGEND_EVENTS = [
+  { key:'academic_break', label:'Academic Break', color:'var(--col-academic-break)' },
+  { key:'immersion2', label:'2학기 Immersion', color:'var(--col-immersion2)' },
+  { key:'immersion3', label:'3학기 Immersion', color:'var(--col-immersion3)' },
+  { key:'cookery', label:'Cookery', color:'var(--col-cookery)' },
+  { key:'ooca1', label:'1학기 OOCA', color:'var(--col-ooca1)' },
+  { key:'ooca2', label:'2학기 OOCA', color:'var(--col-ooca2)' },
+  { key:'ooca3', label:'3학기 OOCA', color:'var(--col-ooca3)' },
+  { key:'dlpt', label:'DLPT', color:'var(--col-dlpt)' },
+  { key:'extra', label:'추가 행사', color:'var(--col-extra)' },
+];
+
+function renderLegend() {
+  const leg = document.getElementById('calLegend');
+  leg.innerHTML = LEGEND_EVENTS.map(e => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${e.color}"></div>
+      <span>${e.label}</span>
+    </div>
+  `).join('');
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('btnMonth').className = 'btn' + (v==='month'?' active':'');
+  document.getElementById('btnWeek').className = 'btn' + (v==='week'?' active':'');
+  renderCalendar();
+}
+
+function goToday() { currentDate = new Date(); renderCalendar(); }
+function calNav(dir) {
+  if (currentView === 'month') {
+    currentDate.setMonth(currentDate.getMonth() + dir);
+  } else {
+    currentDate.setDate(currentDate.getDate() + dir * 7);
+  }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  if (currentView === 'month') renderMonthView();
+  else renderWeekView();
+}
+
+function getEventsForDate(d) {
+  const events = [];
+  // Check all teams
+  data.depts.forEach(dept => {
+    const teams = data.teams[dept] || {};
+    Object.entries(teams).forEach(([tKey, tData]) => {
+      const s = tData.schedule || {};
+      Object.entries(s).forEach(([sKey, sVal]) => {
+        if (!sVal.date) return;
+        const dateRange = getScheduleDateRange(sKey, sVal);
+        if (!dateRange) return;
+        dateRange.forEach(rd => {
+          if (isSameDay(rd, d)) {
+            events.push({ key: sKey, label: tKey+' '+LEGEND_EVENTS.find(e=>e.key===sKey)?.label, color: getEventColor(sKey) });
+          }
+        });
+      });
+      // extras
+      (tData.extras||[]).forEach(ex => {
+        const pd = parseMMDDYY(ex.date);
+        if (pd && isSameDay(pd, d)) {
+          events.push({ key:'extra', label: tKey+' '+ex.name, color:'var(--col-extra)' });
+        }
+      });
+    });
+  });
+  return events;
+}
+
+function getEventColor(key) {
+  const map = {
+    academic_break: 'var(--col-academic-break)',
+    immersion2: 'var(--col-immersion2)',
+    immersion3: 'var(--col-immersion3)',
+    cookery: 'var(--col-cookery)',
+    ooca1: 'var(--col-ooca1)',
+    ooca2: 'var(--col-ooca2)',
+    ooca3: 'var(--col-ooca3)',
+    dlpt: 'var(--col-dlpt)',
+    extra: 'var(--col-extra)',
+  };
+  return map[key] || '#888';
+}
+
+function parseMMDDYY(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length < 3) return null;
+  const [mm,dd,yy] = parts;
+  const year = parseInt(yy) + 2000;
+  const d = new Date(year, parseInt(mm)-1, parseInt(dd));
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function isSameDay(a, b) {
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function getScheduleDateRange(key, sVal) {
+  const start = parseMMDDYY(sVal.date);
+  if (!start) return null;
+  const dates = [];
+  if (key === 'academic_break') {
+    // start to Friday of that week (5 days)
+    let cur = new Date(start);
+    let count = 0;
+    while (count < 5) {
+      if (cur.getDay() !== 0 && cur.getDay() !== 6) { dates.push(new Date(cur)); count++; }
+      if (cur.getDay() === 5) break;
+      cur.setDate(cur.getDate()+1);
+    }
+  } else if (key === 'immersion2' || key === 'immersion3') {
+    for (let i=0;i<2;i++) {
+      let d = new Date(start); d.setDate(d.getDate()+i);
+      if (d.getDay()!==0&&d.getDay()!==6) dates.push(d);
+    }
+  } else if (key === 'cookery') {
+    dates.push(new Date(start));
+  } else if (key === 'dlpt') {
+    // Thu of that week to Wed of next week
+    let cur = new Date(start);
+    while (cur.getDay() !== 4) cur.setDate(cur.getDate()-1); // go back to Thursday
+    for (let i=0;i<7;i++) {
+      let d = new Date(cur); d.setDate(cur.getDate()+i);
+      if (d.getDay()!==0&&d.getDay()!==6) dates.push(d);
+    }
+  } else {
+    // OOCA: single day
+    dates.push(new Date(start));
+  }
+  return dates;
+}
+
+function renderMonthView() {
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const today = new Date();
+  document.getElementById('calTitle').textContent = currentDate.toLocaleString('ko-KR', {year:'numeric',month:'long'});
+
+  const wrap = document.getElementById('calendarWrap');
+  // First day of month, week starting Mon
+  const firstDay = new Date(year, month, 1);
+  // Adjust to Monday-based grid
+  let startDow = firstDay.getDay(); // 0=Sun
+  // skip to Monday
+  // We show Mon-Fri only
+  // Get all weeks
+  const weeks = [];
+  let cur = new Date(firstDay);
+  // go to Monday of first week
+  while (cur.getDay() !== 1) cur.setDate(cur.getDate() - 1);
+
+  while (true) {
+    const week = [];
+    for (let i=0;i<5;i++) { // Mon-Fri
+      week.push(new Date(cur));
+      cur.setDate(cur.getDate()+1);
+    }
+    cur.setDate(cur.getDate()+2); // skip Sat-Sun
+    weeks.push(week);
+    if (cur.getMonth() > month && cur.getFullYear() >= year) break;
+    if (weeks.length > 7) break;
+  }
+
+  const numWeeks = weeks.length;
+  wrap.innerHTML = `
+    <div class="cal-days-header">
+      ${['월','화','수','목','금'].map(d=>`<div class="cal-day-name">${d}</div>`).join('')}
+    </div>
+    <div class="cal-grid" style="flex:1;display:grid;grid-template-rows:repeat(${numWeeks},1fr);overflow:hidden;">
+      ${weeks.map(week => `
+        <div class="cal-week-row">
+          ${week.map(d => {
+            const isToday = isSameDay(d, today);
+            const isOther = d.getMonth() !== month;
+            const events = getEventsForDate(d);
+            const holiday = getHolidayName(d);
+            const mm = String(d.getMonth()+1).padStart(2,'0');
+            const dd = String(d.getDate()).padStart(2,'0');
+            return `
+              <div class="cal-cell${isToday?' today':''}${isOther?' other-month':''}"
+                onclick="openDayModal('${d.toISOString().slice(0,10)}')">
+                <div class="cal-date">${d.getDate()}</div>
+                ${holiday ? `<div class="cal-event" style="background:var(--col-holiday)">${holiday}</div>` : ''}
+                ${events.slice(0,4).map(e=>`<div class="cal-event" style="background:${e.color}">${e.label}</div>`).join('')}
+                ${events.length > 4 ? `<div style="font-size:11px;color:var(--text-secondary)">+${events.length-4}개</div>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderWeekView() {
+  // Get Mon-Fri of current week
+  const cur = new Date(currentDate);
+  while (cur.getDay() !== 1) cur.setDate(cur.getDate()-1);
+  const days = [];
+  for (let i=0;i<5;i++) {
+    days.push(new Date(cur));
+    cur.setDate(cur.getDate()+1);
+  }
+  const start = days[0];
+  const end = days[4];
+  document.getElementById('calTitle').textContent =
+    `${start.getMonth()+1}/${start.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}, ${start.getFullYear()}`;
+
+  const dayNames = ['월','화','수','목','금'];
+  const hours = Array.from({length:10},(_,i)=>i+8); // 8am-5pm
+
+  const wrap = document.getElementById('calendarWrap');
+  wrap.innerHTML = `
+    <div class="week-view-wrap">
+      <div class="week-time-col">
+        ${hours.map(h=>`<div class="week-time-slot">${h}:00</div>`).join('')}
+      </div>
+      <div class="week-days-wrap">
+        ${days.map((d,di)=>{
+          const holiday = getHolidayName(d);
+          const events = getEventsForDate(d);
+          return `
+            <div class="week-day-col">
+              <div class="week-day-header">
+                ${dayNames[di]}<br><span style="font-size:17px;font-weight:900">${d.getDate()}</span>
+                ${holiday?`<span style="font-size:10px;background:#888;color:#fff;border-radius:4px;padding:1px 5px;margin-top:2px">${holiday}</span>`:''}
+              </div>
+              <div class="week-day-body" onclick="openDayModal('${d.toISOString().slice(0,10)}')">
+                ${hours.map(_=>`<div class="week-hour-slot"></div>`).join('')}
+                ${events.map((e,ei)=>`
+                  <div class="week-event-block" style="background:${e.color};top:${ei*28+4}px;height:24px">
+                    ${e.label}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ===================================================
+// BOOKING MODAL
+// ===================================================
+let currentModalDate = null;
+let selectedPeriods = {}; // roomIdx -> periodIdx
+
+function openDayModal(dateStr) {
+  currentModalDate = dateStr;
+  selectedPeriods = {};
+  const d = new Date(dateStr + 'T00:00:00');
+  const holiday = getHolidayName(d);
+
+  // Collect all teams and their rooms for this date
+  const daysTeams = [];
+  data.depts.forEach(dept => {
+    Object.entries(data.teams[dept]||{}).forEach(([tKey, tData]) => {
+      const rooms = (tData.rooms||[]).filter(r=>r.trim());
+      if (rooms.length > 0) {
+        daysTeams.push({ dept, teamKey: tKey, rooms, tData });
+      }
+    });
+  });
+
+  const modal = document.getElementById('bookingModal');
+  document.getElementById('modalTitle').textContent = `📚 교실 예약 — ${dateStr}`;
+  const dayStr = ['일','월','화','수','목','금','토'][d.getDay()];
+  document.getElementById('modalDateInfo').textContent = `${dateStr} (${dayStr})${holiday?' 🎉 '+holiday:''}`;
+
+  const roomsEl = document.getElementById('modalRooms');
+  if (daysTeams.length === 0) {
+    roomsEl.innerHTML = '<p style="color:var(--text-secondary)">등록된 교실이 없습니다. 팀 페이지에서 교실을 입력하세요.</p>';
+  } else {
+    roomsEl.innerHTML = daysTeams.map(({ dept, teamKey, rooms, tData }) => {
+      return rooms.map((room, ri) => {
+        const roomKey = `${teamKey}__${room.replace(/\s/g,'_')}`;
+        return `
+          <div class="room-block">
+            <div class="room-block-title">🏫 ${room} <span style="font-size:13px;color:var(--text-secondary);font-weight:500">(${teamKey})</span></div>
+            <div class="period-row" id="periods_${roomKey}">
+              ${Array.from({length:9},(_,p)=>{
+                const bKey = `${dateStr}__${room}__${p}`;
+                const booking = (data.bookings||{})[bKey];
+                const unavail = isPeriodUnavailable(tData, dateStr, p);
+                return `
+                  <button class="period-btn${booking?' booked':''}${unavail&&!booking?' unavail':''}"
+                    id="pbtn_${roomKey}_${p}"
+                    onclick="selectPeriod('${roomKey}',${p},'${teamKey}','${room}',${unavail})"
+                    title="${booking?'예약: '+booking.team:unavail?'사용불가':'예약가능'}">
+                    ${p}교시${booking?' ('+booking.team+')':''}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            <div class="booking-action-row" id="action_${roomKey}" style="display:none">
+              <input class="booking-team-input" id="teamInput_${roomKey}" placeholder="예) KA1" maxlength="4"
+                oninput="this.value=this.value.toUpperCase()" />
+              <button class="btn btn-primary" onclick="bookPeriod('${roomKey}','${room}')">예약</button>
+              <button class="btn" onclick="cancelPeriod('${roomKey}','${room}')">취소</button>
+            </div>
+            <div class="booking-log" id="log_${roomKey}">
+              <div class="booking-log-title">📋 예약 내역</div>
+              ${renderBookingLog(dateStr, room)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }).join('');
+  }
+
+  modal.style.display = 'flex';
+}
+
+function isPeriodUnavailable(tData, dateStr, period) {
+  // Check AM/PM restrictions from OOCA schedules
+  const s = tData.schedule || {};
+  const d = new Date(dateStr + 'T00:00:00');
+  for (const key of ['ooca1','ooca2','ooca3']) {
+    const sv = s[key];
+    if (!sv || !sv.date || !sv.ampm) continue;
+    const pd = parseMMDDYY(sv.date);
+    if (pd && isSameDay(pd, d)) {
+      if (sv.ampm === 'AM' && period > 4) return true;
+      if (sv.ampm === 'PM' && period <= 4) return true;
+    }
+  }
+  return false;
+}
+
+function selectPeriod(roomKey, period, teamKey, room, unavail) {
+  if (unavail) { showToast('해당 교시는 사용 불가 상태입니다.', 'error'); return; }
+  selectedPeriods[roomKey] = period;
+  // highlight
+  document.querySelectorAll(`[id^="pbtn_${roomKey}_"]`).forEach(b => b.classList.remove('selected'));
+  const btn = document.getElementById(`pbtn_${roomKey}_${period}`);
+  if (btn) btn.classList.add('selected');
+  // show action row
+  const ar = document.getElementById(`action_${roomKey}`);
+  if (ar) ar.style.display = 'flex';
+}
+
+function bookPeriod(roomKey, room) {
+  const period = selectedPeriods[roomKey];
+  if (period === undefined) { showToast('교시를 선택하세요.', 'error'); return; }
+  const teamInput = document.getElementById(`teamInput_${roomKey}`).value.trim().toUpperCase();
+  if (!teamInput) { showToast('예약 팀을 입력하세요.', 'error'); return; }
+
+  const bKey = `${currentModalDate}__${room}__${period}`;
+  if ((data.bookings||{})[bKey]) {
+    showToast('이미 예약된 교시입니다. 취소 후 재예약하세요.', 'error'); return;
+  }
+  if (!data.bookings) data.bookings = {};
+  const now = new Date();
+  const log = (data.bookings[bKey]?.log || []);
+  log.push({ action:'예약', team: teamInput, time: now.toLocaleString('ko-KR') });
+  data.bookings[bKey] = { team: teamInput, log };
+  if (log.length > 10) data.bookings[bKey].log = log.slice(-10);
+  saveLocal();
+  pushToGAS({ action: 'saveBooking', bKey, booking: data.bookings[bKey] });
+  showToast(`${teamInput} - ${period}교시 예약 완료!`, 'success');
+  openDayModal(currentModalDate); // refresh modal
+}
+
+function cancelPeriod(roomKey, room) {
+  const period = selectedPeriods[roomKey];
+  if (period === undefined) { showToast('교시를 선택하세요.', 'error'); return; }
+  const bKey = `${currentModalDate}__${room}__${period}`;
+  if (!data.bookings || !data.bookings[bKey]) { showToast('예약 내역이 없습니다.', 'error'); return; }
+  const now = new Date();
+  const log = data.bookings[bKey].log || [];
+  log.push({ action:'취소', team: data.bookings[bKey].team, time: now.toLocaleString('ko-KR') });
+  delete data.bookings[bKey];
+  saveLocal();
+  pushToGAS({ action: 'cancelBooking', bKey });
+  showToast('예약이 취소되었습니다.', 'success');
+  openDayModal(currentModalDate);
+}
+
+function renderBookingLog(dateStr, room) {
+  const logs = [];
+  for (let p=0;p<9;p++) {
+    const bKey = `${dateStr}__${room}__${p}`;
+    const bk = (data.bookings||{})[bKey];
+    if (bk) logs.push({ period: p, team: bk.team, log: bk.log||[] });
+  }
+  if (logs.length === 0) return '<span style="font-size:13px;color:var(--text-secondary)">예약 없음</span>';
+  return logs.map(b => `
+    <div class="booking-log-item"><strong>${b.period}교시</strong> — ${b.team}</div>
+    ${(b.log||[]).slice(-3).map(l=>`<div class="booking-log-item" style="padding-left:12px;color:var(--text-secondary)">${l.time} / ${l.action} / ${l.team}</div>`).join('')}
+  `).join('');
+}
+
+function closeBookingModal(e) {
+  if (e && e.target !== document.getElementById('bookingModal')) return;
+  if (!e) document.getElementById('bookingModal').style.display = 'none';
+  else document.getElementById('bookingModal').style.display = 'none';
+}
+
+// ===================================================
+// SEARCH
+// ===================================================
+function runSearch() {
+  const type = document.getElementById('searchType').value;
+  const dateStr = document.getElementById('searchDate').value;
+  const availOnly = document.getElementById('showAvailOnly').checked;
+  if (!dateStr) return;
+
+  const d = new Date(dateStr);
+  const dates = [];
+  if (type === 'day') {
+    dates.push(new Date(d));
+  } else if (type === 'week') {
+    let start = new Date(d);
+    while (start.getDay() !== 1) start.setDate(start.getDate()-1);
+    for (let i=0;i<5;i++) { let x=new Date(start); x.setDate(start.getDate()+i); dates.push(x); }
+  } else {
+    const y=d.getFullYear(), m=d.getMonth();
+    let cur=new Date(y,m,1);
+    while(cur.getMonth()===m){
+      if(cur.getDay()!==0&&cur.getDay()!==6) dates.push(new Date(cur));
+      cur.setDate(cur.getDate()+1);
+    }
+  }
+
+  const results = [];
+  dates.forEach(date => {
+    const ds = date.toISOString().slice(0,10);
+    data.depts.forEach(dept => {
+      Object.entries(data.teams[dept]||{}).forEach(([tKey, tData]) => {
+        (tData.rooms||[]).filter(r=>r.trim()).forEach(room => {
+          for (let p=0;p<9;p++) {
+            const bKey = `${ds}__${room}__${p}`;
+            const booked = !!(data.bookings||{})[bKey];
+            const unavail = isPeriodUnavailable(tData, ds, p);
+            const avail = !booked && !unavail;
+            if (availOnly && !avail) continue;
+            results.push({ date: ds, room, team: tKey, period: p, booked, unavail, avail });
+          }
+        });
+      });
+    });
+  });
+
+  const el = document.getElementById('searchResults');
+  if (results.length === 0) {
+    el.innerHTML = '<p style="color:var(--text-secondary)">검색 결과가 없습니다.</p>';
+    return;
+  }
+  const grouped = {};
+  results.forEach(r => {
+    const gk = r.date+'__'+r.room;
+    if (!grouped[gk]) grouped[gk] = { date: r.date, room: r.room, team: r.team, periods: [] };
+    grouped[gk].periods.push(r);
+  });
+
+  el.innerHTML = Object.values(grouped).map(g => `
+    <div class="search-result-item">
+      <strong>${g.date}</strong> — ${g.room} <span style="color:var(--text-secondary);font-size:13px">(${g.team})</span><br>
+      ${g.periods.map(p => `<span class="${p.avail?'avail':p.booked?'taken':''}" style="margin-right:6px;font-size:13px">
+        ${p.period}교시: ${p.avail?'✅가능':p.booked?'❌예약됨':'⛔불가'}
+      </span>`).join('')}
+    </div>
+  `).join('');
+}
+
+// ===================================================
+// ADMIN
+// ===================================================
+function checkAdminPw() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === 'admin123') {
+    adminUnlocked = true;
+    document.getElementById('adminGate').style.display = 'none';
+    document.getElementById('adminContent').style.display = 'block';
+    renderAdminContent();
+  } else {
+    showToast('비밀번호가 틀렸습니다.', 'error');
+  }
+}
+
+function renderAdminContent() {
+  const deptList = document.getElementById('adminDeptList');
+  deptList.innerHTML = data.depts.map(dept => `
+    <div class="admin-list-row">
+      <input value="${dept}" id="deptEdit_${dept}" style="width:100px" />
+      <button class="btn btn-success" onclick="saveDept('${dept}')">저장</button>
+      <button class="btn btn-danger" onclick="deleteDept('${dept}')">삭제</button>
+    </div>
+  `).join('');
+
+  const teamList = document.getElementById('adminTeamList');
+  const allTeams = [];
+  data.depts.forEach(dept => {
+    for (let i=1;i<=5;i++) allTeams.push(dept+i);
+  });
+  teamList.innerHTML = allTeams.map(t => `
+    <div class="admin-list-row">
+      <span style="font-size:15px;font-weight:700;min-width:60px">${t}</span>
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:13px" onclick="if(confirm('${t} 팀 데이터를 삭제?'))deleteTeamData('${t}')">삭제</button>
+    </div>
+  `).join('');
+}
+
+function addDept() {
+  const code = document.getElementById('newDeptInput').value.trim().toUpperCase();
+  if (!code) return;
+  if (data.depts.includes(code)) { showToast('이미 존재하는 과입니다.', 'error'); return; }
+  data.depts.push(code);
+  data.teams[code] = {};
+  for (let i=1;i<=5;i++) {
+    data.teams[code][code+i] = { rooms: ['','',''], schedule: {}, extras: [] };
+  }
+  saveLocal();
+  renderDeptSub();
+  renderAdminContent();
+  showToast(code+' 추가 완료!', 'success');
+}
+
+function saveDept(oldCode) {
+  const newCode = document.getElementById('deptEdit_'+oldCode).value.trim().toUpperCase();
+  if (newCode === oldCode) return;
+  const idx = data.depts.indexOf(oldCode);
+  if (idx === -1) return;
+  data.depts[idx] = newCode;
+  data.teams[newCode] = data.teams[oldCode];
+  delete data.teams[oldCode];
+  saveLocal();
+  renderDeptSub();
+  renderAdminContent();
+}
+
+function deleteDept(code) {
+  if (!confirm(code+' 과를 삭제하시겠습니까?')) return;
+  data.depts = data.depts.filter(d=>d!==code);
+  delete data.teams[code];
+  saveLocal();
+  renderDeptSub();
+  renderAdminContent();
+  showToast(code+' 삭제 완료.', 'success');
+}
+
+function deleteTeamData(teamKey) {
+  data.depts.forEach(dept => {
+    if (data.teams[dept] && data.teams[dept][teamKey]) {
+      data.teams[dept][teamKey] = { rooms:['','',''], schedule:{}, extras:[] };
+    }
+  });
+  saveLocal();
+  showToast(teamKey+' 데이터 초기화 완료.', 'success');
+}
+
+function resetData() {
+  data = {
+    depts: ['KA','KB','KC','KD','KE','KF'],
+    teams: {}, bookings: {}, events: []
+  };
+  data.depts.forEach(dept => {
+    data.teams[dept] = {};
+    for (let i=1;i<=5;i++) {
+      data.teams[dept][dept+i] = { rooms:['','',''], schedule:{}, extras:[] };
+    }
+  });
+  saveLocal();
+  renderDeptSub();
+  renderCalendar();
+  renderAdminContent();
+  showToast('초기화 완료.', 'success');
+}
+
+// ===================================================
+// TOAST
+// ===================================================
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>{ t.className='toast'; }, 3000);
+}
+
+// ===================================================
+// INIT
+// ===================================================
+window.addEventListener('load', () => {
+  loadLocal();
+  renderDeptSub();
+  renderLegend();
+  renderCalendar();
+
+  // GAS setup
+  if (GAS_URL) {
+    document.getElementById('gasUrlInput').value = GAS_URL;
+    document.getElementById('gasSetup').style.display = 'none';
+    document.getElementById('gasStatus').style.display = '';
+    syncFromGAS();
+  }
+
+  // Set today's date in search
+  document.getElementById('searchDate').value = new Date().toISOString().slice(0,10);
+});
+</script>
+</body>
+</html>
